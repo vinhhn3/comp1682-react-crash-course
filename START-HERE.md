@@ -18,7 +18,10 @@ Everything below is copy-paste.
 |---|---|
 | Terminal | this folder, `~/Desktop/comp1682/react-crash-course` |
 | Browser tab 1 | `http://localhost:5173` |
-| Browser tab 2 | `concepts/index.html` (open from Finder, or `concepts/index.html` in the repo) |
+| Browser tab 2 | `http://localhost:5173/concepts/index.html` |
+
+Tab 2 works because Vite serves the whole folder. If the dev server is ever down,
+double-click `concepts/index.html` in Finder — those pages need no server at all.
 
 On the projector you will switch between those two tabs and VS Code. Nothing else.
 
