@@ -1,0 +1,52 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/codetour/main/schemas/tour.schema.json",
+  "title": "05 — the service layer",
+  "description": "The endpoint leaves the component. Read http.js top to bottom.",
+  "steps": [
+    {
+      "file": "src/services/http.js",
+      "line": 1,
+      "description": "Two imports: where the backend is, and the fake server. This is the only file in src that is allowed to know either."
+    },
+    {
+      "file": "src/services/http.js",
+      "line": 15,
+      "description": "HttpError carries the status. Components get a real Error with a number on it, not a Response object."
+    },
+    {
+      "file": "src/services/http.js",
+      "line": 22,
+      "description": "The chaos switch. One query parameter turns the happy path into a lesson: ?chaos=slow=2, ?chaos=fail, ?chaos=offline."
+    },
+    {
+      "file": "src/services/http.js",
+      "line": 44,
+      "description": "Everything that happens before a request exists: logging, offline, latency, failure. If it is here, every call gets it for free."
+    },
+    {
+      "file": "src/services/http.js",
+      "line": 60,
+      "description": "The mock switch. Set VITE_USE_MOCK=false and this becomes a real fetch with the same signature. Nothing above this line changes."
+    },
+    {
+      "file": "src/services/productService.js",
+      "line": 8,
+      "description": "One function per endpoint. The URL is a template string that exists once, in a file with no JSX."
+    },
+    {
+      "file": "src/services/productService.js",
+      "line": 11,
+      "description": "mapProducts happens on the way out, so no component ever receives a DTO."
+    },
+    {
+      "file": "src/types/product.js",
+      "line": 8,
+      "description": "The translator. price_cents becomes price, created_at becomes a Date. If the backend renames a field, you edit this function and nothing else."
+    },
+    {
+      "file": "src/pages/ProductsPage.jsx",
+      "line": 20,
+      "description": "The page is down to one call. But the effect and its three useStates are still here — step 06."
+    }
+  ]
+}

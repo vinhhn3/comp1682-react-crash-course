@@ -1,3 +1,5 @@
+import { formatCurrency } from '../../lib/formatCurrency';
+
 export function CartLine({ line, onQty, onRemove }) {
   return (
     <div className="cart-line">
@@ -7,7 +9,7 @@ export function CartLine({ line, onQty, onRemove }) {
 
       <div>
         <div className="cart-line__title">{line.title}</div>
-        <div className="cart-line__unit">${(line.price_cents / 100).toFixed(2)} each</div>
+        <div className="cart-line__unit">{formatCurrency(line.price)} each</div>
       </div>
 
       <div className="row">

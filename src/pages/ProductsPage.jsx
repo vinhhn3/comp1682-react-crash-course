@@ -1,21 +1,16 @@
 import { useEffect, useState } from 'react';
-import { mockApi } from '../../mock/server';
+import { productService } from '../services/productService';
 import { ProductList } from '../components/product/ProductList';
 import { SearchBar } from '../components/product/SearchBar';
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   ⛔ STEP 04 — THIS FILE IS DELIBERATELY WRONG.
+   STEP 05 — the endpoint has moved out.
 
-   It works. That is the problem. Five things are in the wrong place:
+   The URL is gone from this file. If the backend changes, nothing here changes.
+   But the effect is still here: three pieces of state, no abort, and the same
+   four-line loading dance every screen will copy.
 
-   1. The endpoint ("/products?q=") lives in a component.
-   2. Every screen that needs products will copy this effect.
-   3. There is no abort. Type fast and the slowest answer wins.
-   4. loading / error / empty are re-invented per component.
-   5. You cannot test any of it without a browser and a network.
-
-   Step 05 moves the endpoint down into services/.
-   Step 06 moves the effect down into hooks/, and adds the abort.
+   That is step 06.
    ──────────────────────────────────────────────────────────────────────────── */
 
 export function ProductsPage({ onAdd }) {
@@ -28,8 +23,8 @@ export function ProductsPage({ onAdd }) {
     setLoading(true);
     setError(null);
 
-    mockApi
-      .handle('GET', `/products?q=${encodeURIComponent(query)}`)
+    productService
+      .getAll({ query })
       .then((data) => setProducts(data))
       .catch((err) => setError(err))
       .finally(() => setLoading(false));
@@ -40,7 +35,7 @@ export function ProductsPage({ onAdd }) {
       <div className="page-head">
         <div>
           <h1 className="page-title">Shop</h1>
-          <p className="page-sub">The data comes from a server now. This file is the mess we will fix.</p>
+          <p className="page-sub">The page asks for products. It no longer knows what a URL is.</p>
         </div>
         <span className="pill">{products.length} shown</span>
       </div>

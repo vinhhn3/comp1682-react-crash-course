@@ -1,8 +1,9 @@
 import { Button } from '../common/Button';
+import { formatCurrency } from '../../lib/formatCurrency';
 
 /**
- * Step 02: one new prop, `onAdd`. The card still knows nothing about carts —
- * it just reports that a button was pressed.
+ * `product` is a model now, not a DTO. Note `product.price`, not `price_cents`.
+ * The component never learns what the server calls things.
  */
 export function ProductCard({ product, onAdd }) {
   return (
@@ -18,7 +19,7 @@ export function ProductCard({ product, onAdd }) {
           <span>★ {product.rating.toFixed(1)}</span>
         </div>
         <div className="card__foot">
-          <span className="price">${(product.price_cents / 100).toFixed(2)}</span>
+          <span className="price">{formatCurrency(product.price)}</span>
           <Button variant="ghost" onClick={() => onAdd(product)}>
             Add
           </Button>
