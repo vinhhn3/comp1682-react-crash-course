@@ -379,10 +379,22 @@ td code, p code, li code, .note code { font: 12px var(--mono); background: #eef1
 }
 .diff2-row { display: grid; grid-template-columns: 1fr 1fr; }
 .diff2-cell {
-  padding: 1px 12px;
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  color: #1f2328;
+}
+.diff2-cell .ln {
+  padding: 1px 8px 1px 6px;
+  text-align: right;
+  color: #8c959f;
+  background: rgba(31, 35, 40, 0.03);
+  border-right: 1px solid #eaeef2;
+  user-select: none;
+}
+.diff2-cell .tx {
+  padding: 1px 10px;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  color: #1f2328;
 }
 .diff2-cell + .diff2-cell { border-left: 1px solid #d0d7de; }
 .diff2-cell.ctx { background: #ffffff; }

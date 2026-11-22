@@ -29,6 +29,18 @@
       <div id="diagram"></div>
     </div>
 
+    <div class="card" id="diff-card" style="margin-bottom:16px">
+      <div class="spread">
+        <div>
+          <h3>What changed since the last step</h3>
+          <p class="diff-stat" id="diff-stat" style="margin:4px 0 0"></p>
+          <p class="mono" id="diff-cmd" style="margin:6px 0 0;font-size:11.5px;color:var(--muted)"></p>
+        </div>
+        <button class="btn" id="diff-toggle" hidden>Hide the diff</button>
+      </div>
+      <div id="diff-body" style="margin-top:14px"></div>
+    </div>
+
     <div class="grid2">
       <div class="card stack">
         <h3>In this step</h3>
@@ -43,16 +55,6 @@
 
     <div class="card" style="padding:0;overflow:hidden;margin-top:16px">
       <pre class="code" style="margin:0"><span class="file" id="file"></span><code id="code"></code></pre>
-    </div>
-
-    <div class="card" id="diff-card" style="margin-top:16px">
-      <div class="spread">
-        <h3>What changed since the last step</h3>
-        <button class="btn" id="diff-toggle" hidden>Show the diff</button>
-      </div>
-      <p class="diff-stat" id="diff-stat" style="margin:6px 0 0"></p>
-      <p class="mono" id="diff-cmd" style="margin:8px 0 0;font-size:11.5px;color:var(--muted)"></p>
-      <div class="diff-box" id="diff-body" hidden></div>
     </div>
   </section>
 
@@ -81,6 +83,8 @@ function diffHtml(raw, from, to) {
   let hunk = null;
   let dels = [];
   let adds = [];
+  let oldNo = 0;
+  let newNo = 0;
 
   const flush = () => {
     if (!hunk) return;
@@ -109,21 +113,37 @@ function diffHtml(raw, from, to) {
       file.note = `${file.note} → ${line.slice(10)}`;
     } else if (line.startsWith('@@')) {
       flush();
+      const range = line.match(/^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
+      oldNo = range ? Number(range[1]) : 0;
+      newNo = range ? Number(range[2]) : 0;
       hunk = { header: line, rows: [] };
       file.hunks.push(hunk);
     } else if (!hunk) {
       continue;
     } else if (line.startsWith('-')) {
-      dels.push(line.slice(1));
+      dels.push({ text: line.slice(1), no: oldNo });
+      oldNo += 1;
     } else if (line.startsWith('+')) {
-      adds.push(line.slice(1));
+      adds.push({ text: line.slice(1), no: newNo });
+      newNo += 1;
     } else if (line.startsWith(' ')) {
       flush();
       const text = line.slice(1);
-      hunk.rows.push({ left: text, right: text, ctx: true });
+      hunk.rows.push({
+        left: { text, no: oldNo },
+        right: { text, no: newNo },
+        ctx: true,
+      });
+      oldNo += 1;
+      newNo += 1;
     }
   }
   flush();
+
+  const cell = (side, cls) =>
+    side
+      ? `<div class="diff2-cell ${cls}"><span class="ln">${side.no}</span><span class="tx">${esc(side.text) || '&#8203;'}</span></div>`
+      : '<div class="diff2-cell empty"></div>';
 
   let html = `<div class="diff2">
     <div class="diff2-head"><span>before · ${esc(from)}</span><span>after · ${esc(to)}</span></div>`;
@@ -135,15 +155,10 @@ function diffHtml(raw, from, to) {
       html += `<div class="diff2-hunk">${esc(h.header)}</div>`;
 
       for (const row of h.rows) {
-        const left =
-          row.left === undefined
-            ? '<div class="diff2-cell empty"></div>'
-            : `<div class="diff2-cell ${row.ctx ? 'ctx' : 'del'}">${esc(row.left) || '&#8203;'}</div>`;
-        const right =
-          row.right === undefined
-            ? '<div class="diff2-cell empty"></div>'
-            : `<div class="diff2-cell ${row.ctx ? 'ctx' : 'add'}">${esc(row.right) || '&#8203;'}</div>`;
-        html += `<div class="diff2-row">${left}${right}</div>`;
+        html += `<div class="diff2-row">${cell(row.left, row.ctx ? 'ctx' : 'del')}${cell(
+          row.right,
+          row.ctx ? 'ctx' : 'add',
+        )}</div>`;
       }
     }
   }
@@ -163,12 +178,12 @@ async function loadDiff(n) {
   body.hidden = true;
   body.innerHTML = '';
   toggle.hidden = true;
-  toggle.textContent = 'Show the diff';
+  toggle.textContent = 'Hide the diff';
   stat.textContent = 'loading…';
   cmd.textContent = '';
 
   try {
-    const data = await fetch('/__diff', { cache: 'no-store' }).then((r) => r.json());
+    const data = await fetch(`/__diff?step=${n}`, { cache: 'no-store' }).then((r) => r.json());
 
     if (!data.from) {
       stat.textContent = 'Starting point — there is nothing before this.';
@@ -179,7 +194,9 @@ async function loadDiff(n) {
     cmd.textContent = `git diff ${data.from} ${data.to} -- src`;
 
     body.innerHTML = diffHtml(data.raw, data.from, data.to);
+    body.hidden = false;
     toggle.hidden = false;
+    toggle.textContent = 'Hide the diff';
     toggle.onclick = () => {
       body.hidden = !body.hidden;
       toggle.textContent = body.hidden ? 'Show the diff' : 'Hide the diff';
@@ -248,12 +265,8 @@ function render(n) {
     'Command for this step: <code>npm run step ' + n + '</code>. ' +
     'The app is at <a href="/" target="_blank">localhost:5173</a>.';
 
-  if (manual) {
-    $('diff-card').hidden = true;
-  } else {
-    $('diff-card').hidden = false;
-    loadDiff(n);
-  }
+  $('diff-card').hidden = false;
+  loadDiff(n);
 }
 
 /* manual preview via ?step=5 */

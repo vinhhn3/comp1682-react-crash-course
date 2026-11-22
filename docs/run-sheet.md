@@ -8,7 +8,7 @@ app and the concept tab. Every `npm run step N` moves both tabs.
 - Ask the question on the concept tab, wait three seconds, then answer it.
 - Never type a long block. The branch already has the code; type the one-line delta.
 - Say the step number out loud. "We are on step six" keeps the room oriented.
-- **End every step by opening the diff card.** The diagram explains; the diff proves. Read the summary line first ("four files changed…"), then the red and green.
+- **End every step on the diff card.** It sits under the diagram, already open. Read the summary line first ("four files changed…"), then the red line and the green line beside it.
 
 ---
 
