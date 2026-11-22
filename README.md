@@ -6,6 +6,8 @@ move into layers.
 
 No slides. One screen, three panes (editor, browser, DevTools), nine branches.
 
+**New here? Read [`START-HERE.md`](START-HERE.md) first — it is the five-minute dry run.**
+
 ---
 
 ## Quickstart
