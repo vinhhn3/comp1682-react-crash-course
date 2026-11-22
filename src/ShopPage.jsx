@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import ProductCard from './ProductCard';
+import { getProducts } from './api';
 
 const ShopPage = ({ onAdd }) => {
   const [products, setProducts] = useState([]);
@@ -12,10 +13,7 @@ const ShopPage = ({ onAdd }) => {
 
     const fetchProducts = async () => {
       try {
-        const res = await fetch(`/api/products?q=${query}`, {
-          signal: controller.signal,
-        });
-        const data = await res.json();
+        const data = await getProducts(query, controller.signal);
         setProducts(data);
         setError(null);
       } catch (err) {
