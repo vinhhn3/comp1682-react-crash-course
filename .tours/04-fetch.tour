@@ -1,0 +1,42 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/codetour/main/schemas/tour.schema.json",
+  "title": "04 — the mess (read this one out loud)",
+  "description": "A working component that is wrong in five ways. Do not fix it here.",
+  "steps": [
+    {
+      "file": "src/pages/ProductsPage.jsx",
+      "line": 6,
+      "description": "Read the comment block before the code. Five problems, all of them invisible when the app works."
+    },
+    {
+      "file": "src/pages/ProductsPage.jsx",
+      "line": 22,
+      "description": "Three pieces of state for one request. Every component that fetches will need these three lines."
+    },
+    {
+      "file": "src/pages/ProductsPage.jsx",
+      "line": 29,
+      "description": "The endpoint is a template string in the UI layer. This is the string you will grep for in three files next term."
+    },
+    {
+      "file": "src/pages/ProductsPage.jsx",
+      "line": 36,
+      "description": "No AbortController, no cleanup. Every keystroke starts a request and nothing cancels it."
+    },
+    {
+      "file": "src/pages/ProductsPage.jsx",
+      "line": 40,
+      "description": "finally() sets loading false for whichever request happens to finish. With two in flight, the last one to settle wins — including the stale one."
+    },
+    {
+      "file": "src/pages/ProductsPage.jsx",
+      "line": 55,
+      "description": "Loading, error and empty are all rendered here. Copy this block to the next screen that fetches, and the one after."
+    },
+    {
+      "file": "mock/server.js",
+      "line": 1,
+      "description": "Not app code. It stands in for a server you do not own, so the latency and the abort are real. Delete this folder and swap services/http.js to fetch for production."
+    }
+  ]
+}
