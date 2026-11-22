@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import ProductCard from './ProductCard';
-import { useProducts } from './useProducts';
-import { useCart } from './CartContext';
+import ProductCard from '../components/ProductCard';
+import { useProducts } from '../hooks/useProducts';
+import { useCart } from '../context/CartContext';
 
 const ShopPage = () => {
   const [query, setQuery] = useState('');
