@@ -1,6 +1,7 @@
+import { NavLink } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 
-const Header = ({ page, onNavigate }) => {
+const Header = () => {
   const { count } = useCart();
 
   return (
@@ -8,8 +9,8 @@ const Header = ({ page, onNavigate }) => {
       <h1>Shop</h1>
 
       <nav className="nav">
-        <button onClick={() => onNavigate('shop')}>Shop</button>
-        <button onClick={() => onNavigate('cart')}>Cart ({count})</button>
+        <NavLink to="/">Shop</NavLink>
+        <NavLink to="/cart">Cart ({count})</NavLink>
       </nav>
     </header>
   );

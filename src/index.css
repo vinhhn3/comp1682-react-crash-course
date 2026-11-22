@@ -78,6 +78,19 @@ button:hover {
   gap: 8px;
 }
 
+.nav a {
+  padding: 6px 10px;
+  border-radius: 8px;
+  color: #1f5fd6;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.nav a.active {
+  background: #1f5fd6;
+  color: white;
+}
+
 .input {
   width: 100%;
   padding: 8px 12px;
