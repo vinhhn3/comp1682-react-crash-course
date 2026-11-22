@@ -1,3 +1,5 @@
+import ProductCard from './ProductCard';
+
 const products = [
   { id: 1, title: 'Aero Mug', category: 'Kitchen', price: 24 },
   { id: 2, title: 'Halo Headphones', category: 'Audio', price: 89 },
@@ -10,12 +12,7 @@ const App = () => {
       <h1>Shop</h1>
 
       {products.map((product) => (
-        <div className="card" key={product.id}>
-          <h2>{product.title}</h2>
-          <p>{product.category}</p>
-          <p>${product.price}</p>
-          <button>Add to cart</button>
-        </div>
+        <ProductCard key={product.id} product={product} />
       ))}
     </div>
   );
