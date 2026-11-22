@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Concepts — Market</title>
+<link rel="stylesheet" href="concepts.css" />
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="topnav">
+    <a class="here" href="index.html">Concepts</a>
+    <a href="hooks.html">Hooks</a>
+    <a href="api.html">API handling</a>
+    <a href="context.html">Context</a>
+    <span class="spacer"></span>
+    <a class="back" href="../course-map.html">Course map ↗</a>
+  </nav>
+
+  <p class="kicker">Three ideas, three pages</p>
+  <h1>The three things everyone gets stuck on</h1>
+  <p class="lede">
+    Each page is one interactive diagram. Open it on the projector while you talk, click the buttons,
+    and let the room watch the thing happen. Nothing here needs the dev server.
+  </p>
+
+  <section class="sec">
+    <div class="grid3" style="margin-top:26px">
+
+      <a class="card" href="hooks.html" style="text-decoration:none;color:inherit">
+        <span class="tag b">hooks</span>
+        <h2 style="margin-top:12px;font-size:20px">One render, one snapshot</h2>
+        <p style="color:var(--muted);font-size:13.5px;margin:8px 0 0">
+          Why <code>setCount(count + 1)</code> twice only adds one. Why <code>useEffect</code> runs twice.
+          A click-through of the render cycle and the dependency contract.
+        </p>
+        <p style="margin:14px 0 0;color:var(--accent);font-weight:600;font-size:13px">Open the simulator →</p>
+      </a>
+
+      <a class="card" href="api.html" style="text-decoration:none;color:inherit">
+        <span class="tag b">API</span>
+        <h2 style="margin-top:12px;font-size:20px">Six states, one request</h2>
+        <p style="color:var(--muted);font-size:13.5px;margin:8px 0 0">
+          Who knows what, the loading/error/empty timeline, the out-of-order race, and where
+          <code>price_cents</code> becomes <code>price</code>.
+        </p>
+        <p style="margin:14px 0 0;color:var(--accent);font-weight:600;font-size:13px">Run the race →</p>
+      </a>
+
+      <a class="card" href="context.html" style="text-decoration:none;color:inherit">
+        <span class="tag b">context</span>
+        <h2 style="margin-top:12px;font-size:20px">Skipping the middle</h2>
+        <p style="color:var(--muted);font-size:13.5px;margin:8px 0 0">
+          The same value, four levels deep: once with props, once with context. Then exactly
+          which components re-render, and which do not.
+        </p>
+        <p style="margin:14px 0 0;color:var(--accent);font-weight:600;font-size:13px">Watch the re-render →</p>
+      </a>
+
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2><span class="n">!</span> How to use these</h2>
+    <p class="sub">These replace slides. Do not read them out loud — operate them.</p>
+    <table>
+      <tr><th style="width:110px">When</th><th>What to do</th></tr>
+      <tr><td><b>1:15</b></td><td><b>hooks.html</b> — run the render stepper, then the effect simulator in all three dependency modes. 10 minutes.</td></tr>
+      <tr><td><b>1:25</b></td><td><b>api.html</b> — send a request, kill it with a 500, then run the race. Then switch to the editor and build the same thing.</td></tr>
+      <tr><td><b>2:30</b></td><td><b>context.html</b> — drill first, then skip. Ask the room to predict which nodes flash before you click.</td></tr>
+    </table>
+  </section>
+
+</div>
+</body>
+</html>

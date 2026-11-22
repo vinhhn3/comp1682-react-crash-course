@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Context — skipping the middle</title>
+<link rel="stylesheet" href="concepts.css" />
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="topnav">
+    <a href="index.html">Concepts</a>
+    <a href="hooks.html">Hooks</a>
+    <a href="api.html">API handling</a>
+    <a class="here" href="context.html">Context</a>
+    <span class="spacer"></span>
+    <a class="back" href="../course-map.html">Course map ↗</a>
+  </nav>
+
+  <p class="kicker">Context</p>
+  <h1>Skipping the middle</h1>
+  <p class="lede">
+    Context is not “global state”. It is one specific thing: <b>a value that many unrelated
+    components need, delivered without passing it through components that do not care.</b>
+  </p>
+
+  <!-- 1 ─────────────────────────────────────────────────── -->
+  <section class="sec">
+    <h2><span class="n">1</span> First, feel the drilling</h2>
+    <p class="sub">The cart lives in App. The badge needs it. Two components in between do not.</p>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="flow" id="tree">
+          <div class="node" id="n-app">App <small>const [cart, setCart] = useState([])</small></div>
+          <div class="link" id="l1"></div>
+          <div class="node" id="n-layout">AppLayout <small>must accept cart, even though it never reads it</small></div>
+          <div class="link" id="l2"></div>
+          <div class="node" id="n-header">Header <small>must accept cart, even though it never reads it</small></div>
+          <div class="link" id="l3"></div>
+          <div class="node" id="n-badge">CartBadge <small>the only one that needs the number</small></div>
+        </div>
+        <div class="btns" style="margin-top:16px">
+          <button class="btn pri" id="drill">Send the value down</button>
+          <button class="btn" id="dreset">reset</button>
+        </div>
+      </div>
+
+      <div class="card stack">
+        <h3>The signature that gives it away</h3>
+        <pre class="code">function AppLayout({ children, <span class="r">cart</span> }) {
+  return &lt;Header <span class="r">cart={cart}</span> /&gt;
+}
+
+function Header({ <span class="r">cart</span> }) {
+  return &lt;CartBadge <span class="r">count={cart.length}</span> /&gt;
+}</pre>
+        <p style="margin:0;font-size:13.5px">
+          Two components now have a prop they never use. Move the badge one level deeper and you edit
+          two more files. That is the smell.
+        </p>
+        <div class="note" style="font-size:13px">
+          <strong>It is not always wrong.</strong> Two or three levels with an obvious parent-child
+          relationship? Pass the prop. Drilling is only a problem when the middle is unrelated.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 ─────────────────────────────────────────────────── -->
+  <section class="sec">
+    <h2><span class="n">2</span> Now skip it</h2>
+    <p class="sub">The provider publishes. The consumer subscribes. The middle never hears about it.</p>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="flow">
+          <div class="node hot">CartProvider <small>value = {{ items, count, add, remove }}</small></div>
+          <div class="link" style="visibility:hidden"></div>
+          <div class="node off">AppLayout <small>nothing changes</small></div>
+          <div class="link" style="visibility:hidden"></div>
+          <div class="node off">Header <small>nothing changes</small></div>
+          <div class="link" style="visibility:hidden"></div>
+          <div class="node ctx">CartBadge <small>const { count } = useCart()</small></div>
+        </div>
+        <p class="mono" style="margin-top:14px;color:var(--accent)">provider ─ ─ ─ ─ ─ ─ ─ ─ ─ ─► consumer</p>
+      </div>
+
+      <div class="card stack">
+        <h3>It is still one-way data flow</h3>
+        <p style="margin:0;font-size:13.5px">
+          The value still comes from above. You did not make global variables — you made the
+          <b>lookup</b> skip the middle.
+        </p>
+        <pre class="code"><span class="c">// the middle, unchanged</span>
+function Header() {
+  return &lt;CartBadge /&gt;
+}
+
+<span class="c">// the consumer asks for it by name</span>
+function CartBadge() {
+  const { count } = <b>useCart()</b>;
+  return &lt;span&gt;{count}&lt;/span&gt;
+}</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 ─────────────────────────────────────────────────── -->
+  <section class="sec">
+    <h2><span class="n">3</span> What re-renders when the cart changes</h2>
+    <p class="sub">Press “add to cart” in each mode. This is the part everyone guesses wrong.</p>
+
+    <div class="card stack">
+      <div class="spread">
+        <div class="btns">
+          <button class="btn on" data-mode="context">with context</button>
+          <button class="btn" data-mode="props">with props</button>
+        </div>
+        <div class="btns">
+          <button class="btn pri" id="add">add to cart</button>
+          <span class="tag" id="count">0 re-rendered</span>
+        </div>
+      </div>
+
+      <div class="flow" id="rtree" style="margin-top:8px">
+        <div class="node" id="r-app">App</div>
+        <div class="link"></div>
+        <div class="node" id="r-layout">AppLayout</div>
+        <div class="link"></div>
+        <div class="node" id="r-header">Header</div>
+        <div class="link"></div>
+        <div class="node" id="r-badge">CartBadge <small>useCart()</small></div>
+        <div class="link" style="visibility:hidden"></div>
+        <div class="node" id="r-page">ProductsPage</div>
+        <div class="link" style="visibility:hidden"></div>
+        <div class="node" id="r-summary">CartSummary <small>useCart()</small></div>
+      </div>
+
+      <p class="note" id="rtext" style="font-size:13px">
+        With context, the update reaches the two consumers. App, AppLayout, Header and ProductsPage
+        do not re-render just because the cart changed.
+      </p>
+    </div>
+  </section>
+
+  <!-- 4 ─────────────────────────────────────────────────── -->
+  <section class="sec">
+    <h2><span class="n">4</span> Use it when…</h2>
+    <div class="grid2" style="margin-top:14px">
+      <div class="card stack">
+        <span class="tag g">good fit</span>
+        <ul style="margin:0;padding-left:18px;font-size:13.5px;line-height:1.95">
+          <li>the signed-in user</li>
+          <li>the cart / basket</li>
+          <li>theme, locale, currency</li>
+          <li>a toast or modal manager</li>
+        </ul>
+        <p style="margin:0;font-size:13px;color:var(--muted)">One value, many distant readers, read far more often than written.</p>
+      </div>
+      <div class="card stack">
+        <span class="tag r">not a fit</span>
+        <ul style="margin:0;padding-left:18px;font-size:13.5px;line-height:1.95">
+          <li>one page's form state</li>
+          <li>a value only a child needs</li>
+          <li>server data — that is a hook's job</li>
+          <li>“everything, in one big provider”</li>
+        </ul>
+        <p style="margin:0;font-size:13px;color:var(--muted)">Context has no selector: every consumer re-renders on every change.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 ─────────────────────────────────────────────────── -->
+  <section class="sec">
+    <h2><span class="n">5</span> Three files, in this repo</h2>
+    <div class="grid3" style="margin-top:14px">
+      <div class="card stack">
+        <span class="tag b">1 · the behaviour</span>
+        <code style="font-size:12px">hooks/useCart.js</code>
+        <pre class="code" style="font-size:11.5px">items, loading, error
+add(), remove(), setQty()
+count, total  ← derived</pre>
+        <p style="margin:0;font-size:12.5px;color:var(--muted)">No JSX. Testable on its own.</p>
+      </div>
+      <div class="card stack">
+        <span class="tag b">2 · the delivery</span>
+        <code style="font-size:12px">context/CartContext.jsx</code>
+        <pre class="code" style="font-size:11.5px">const value = useCartState()
+return &lt;Ctx.Provider value={value}&gt;
+
+useCart() → throws if no provider</pre>
+        <p style="margin:0;font-size:12.5px;color:var(--muted)">Tiny on purpose. It only distributes.</p>
+      </div>
+      <div class="card stack">
+        <span class="tag b">3 · the reader</span>
+        <code style="font-size:12px">components/cart/CartBadge.jsx</code>
+        <pre class="code" style="font-size:11.5px">const { count } = useCart()
+
+return &lt;span className="badge"&gt;
+  {count}
+&lt;/span&gt;</pre>
+        <p style="margin:0;font-size:12.5px;color:var(--muted)">No props at all. That is the win.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ── 1. drilling animation ─────────────────────────────── */
+(() => {
+  const ids = ['n-app', 'n-layout', 'n-header', 'n-badge'];
+  const links = ['l1', 'l2', 'l3'];
+  let timers = [];
+
+  function clear() {
+    timers.forEach(clearTimeout);
+    timers = [];
+    ids.forEach((id) => document.getElementById(id).classList.remove('on'));
+    links.forEach((id) => document.getElementById(id).classList.remove('lit'));
+  }
+
+  document.getElementById('drill').onclick = () => {
+    clear();
+    ids.forEach((id, i) => {
+      timers.push(setTimeout(() => document.getElementById(id).classList.add('on'), i * 420));
+      if (links[i]) timers.push(setTimeout(() => document.getElementById(links[i]).classList.add('lit'), i * 420 + 210));
+    });
+  };
+  document.getElementById('dreset').onclick = clear;
+})();
+
+/* ── 3. re-render propagation ──────────────────────────── */
+(() => {
+  const PROPS = ['r-app', 'r-layout', 'r-header', 'r-badge'];
+  const CONTEXT = ['r-badge', 'r-summary'];
+  const ALL = ['r-app', 'r-layout', 'r-header', 'r-badge', 'r-page', 'r-summary'];
+
+  let mode = 'context';
+  const countTag = document.getElementById('count');
+  const text = document.getElementById('rtext');
+
+  document.querySelectorAll('[data-mode]').forEach((b) => {
+    b.onclick = () => {
+      mode = b.dataset.mode;
+      document.querySelectorAll('[data-mode]').forEach((x) => x.classList.toggle('on', x === b));
+      reset();
+    };
+  });
+
+  function reset() {
+    ALL.forEach((id) => document.getElementById(id).classList.remove('hot', 'off'));
+    countTag.textContent = '0 re-rendered';
+    text.innerHTML = mode === 'context'
+      ? 'With context, the update reaches the two consumers. App, AppLayout, Header and ProductsPage do not re-render just because the cart changed.'
+      : 'With props, every component on the path has to re-render to pass the new value down — even the two that never use it.';
+  }
+
+  document.getElementById('add').onclick = () => {
+    const hot = mode === 'context' ? CONTEXT : PROPS;
+    ALL.forEach((id) => {
+      const el = document.getElementById(id);
+      el.classList.remove('hot');
+      el.classList.toggle('off', !hot.includes(id));
+    });
+    hot.forEach((id) => document.getElementById(id).classList.add('hot'));
+    countTag.textContent = `${hot.length} re-rendered`;
+  };
+
+  reset();
+})();
+</script>
+</body>
+</html>

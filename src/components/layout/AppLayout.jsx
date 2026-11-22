@@ -1,10 +1,10 @@
 import { Header } from './Header';
 
-/** The shell: every page renders inside it. */
-export function AppLayout({ children }) {
+/** The shell. Step 03: it now has to forward props it does not use. */
+export function AppLayout({ page, count, onNavigate, children }) {
   return (
     <div className="shell">
-      <Header />
+      <Header page={page} count={count} onNavigate={onNavigate} />
       <main className="container">{children}</main>
     </div>
   );

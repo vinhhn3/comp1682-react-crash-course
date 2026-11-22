@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>API handling — six states, one request</title>
+<link rel="stylesheet" href="concepts.css" />
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="topnav">
+    <a href="index.html">Concepts</a>
+    <a href="hooks.html">Hooks</a>
+    <a class="here" href="api.html">API handling</a>
+    <a href="context.html">Context</a>
+    <span class="spacer"></span>
+    <a class="back" href="../course-map.html">Course map ↗</a>
+  </nav>
+
+  <p class="kicker">API handling</p>
+  <h1>One request, six states</h1>
+  <p class="lede">
+    A network call is not a function call. It can be slow, it can fail, it can arrive out of order,
+    and it will happen again. Every one of those is a state you have to draw.
+  </p>
+
+  <!-- 1 ─────────────────────────────────────────────────── -->
+  <section class="sec">
+    <h2><span class="n">1</span> Who knows what</h2>
+    <p class="sub">The rule that makes the rest of this page inevitable: only hooks touch services.</p>
+
+    <div class="grid2">
+      <div class="flow">
+        <div class="node">ProductsPage <small>may not know: urls, status codes, retries</small></div>
+        <div class="link"></div>
+        <div class="node on">useProducts() <small>may not know: JSX, what a URL looks like</small></div>
+        <div class="link"></div>
+        <div class="node">productService <small>may not know: React, spinners, which page called it</small></div>
+        <div class="link"></div>
+        <div class="node ctx">http() <small>may not know: products. It knows methods, headers, status.</small></div>
+        <div class="link"></div>
+        <div class="node off">the server <small>knows nothing about you</small></div>
+      </div>
+
+      <div class="card stack">
+        <h3>Why this order matters</h3>
+        <p style="margin:0;font-size:13.5px">If the component calls <code>fetch</code>, then:</p>
+        <ul style="margin:0;padding-left:18px;font-size:13.5px;line-height:1.9">
+          <li>the URL is in the UI layer</li>
+          <li>every screen re-implements loading and error</li>
+          <li>a 401 means editing every component</li>
+          <li>you cannot test it without a browser</li>
+        </ul>
+        <div class="note bad" style="font-size:13px">
+          <strong>Tell:</strong> if you can grep a URL inside <code>src/components</code>, the layer is already broken.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 ─────────────────────────────────────────────────── -->
+  <section class="sec">
+    <h2><span class="n">2</span> The same call, three endings</h2>
+    <p class="sub">Press a button. Watch what the screen is allowed to show.</p>
+
+    <div class="grid3">
+      <div class="card stack">
+        <h3>Request</h3>
+        <div class="btns" style="flex-direction:column">
+          <button class="btn pri" id="ok">Send → 200</button>
+          <button class="btn" id="fail">Force 500</button>
+          <button class="btn" id="off">Go offline</button>
+        </div>
+        <pre class="code" id="wire" style="min-height:96px">idle</pre>
+      </div>
+
+      <div class="card stack" style="grid-column:span 2">
+        <div class="spread"><h3>The screen</h3><span class="tag" id="phase">idle</span></div>
+        <div id="ui" style="min-height:150px;border:1px dashed #c8d3e2;border-radius:10px;padding:16px;display:grid;place-items:center;text-align:center">
+          <span style="color:var(--muted)">Nothing requested yet.</span>
+        </div>
+        <p class="note" id="explain" style="font-size:13px">Three states, always: loading, error, data. The fourth — empty — is data with nothing in it.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 ─────────────────────────────────────────────────── -->
+  <section class="sec">
+    <h2><span class="n">3</span> The race: the bug nobody sees in testing</h2>
+    <p class="sub">Two keystrokes, two requests, no guarantee about who answers last.</p>
+
+    <div class="card stack">
+      <div class="spread">
+        <h3>Type “m”, then “mu”</h3>
+        <div class="btns">
+          <button class="btn pri" id="race">Run the race</button>
+          <button class="btn" id="abort">Run with abort</button>
+          <button class="btn" id="clear">clear</button>
+        </div>
+      </div>
+
+      <div class="stack" style="gap:8px;margin-top:6px">
+        <div class="row"><span class="tag" style="width:76px">q = “m”</span><div class="track" style="flex:1"><div class="bar a" id="barA" style="left:0;width:0">GET /products?q=m</div></div></div>
+        <div class="row"><span class="tag" style="width:76px">q = “mu”</span><div class="track" style="flex:1"><div class="bar b" id="barB" style="left:8%;width:0">GET /products?q=mu</div></div></div>
+        <div class="ticks"><span>0s</span><span>1s</span><span>2s</span><span>3s</span></div>
+      </div>
+
+      <div class="grid2" style="margin-top:4px">
+        <div class="card" style="padding:0;overflow:hidden">
+          <ul class="log" id="racelog" style="max-height:150px"></ul>
+        </div>
+        <div id="result" class="card" style="display:grid;place-items:center;text-align:center;min-height:120px;font-weight:600">
+          <span style="color:var(--muted);font-weight:400">Result goes here.</span>
+        </div>
+      </div>
+
+      <div class="note" style="font-size:13px">
+        The user typed <b>“mu”</b>. The screen ends up showing results for <b>“m”</b>. Nothing crashed,
+        no red error, no warning — just the wrong list. The fix is one line: a cleanup that calls
+        <code>controller.abort()</code>.
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 ─────────────────────────────────────────────────── -->
+  <section class="sec">
+    <h2><span class="n">4</span> The service translates, the app never learns server words</h2>
+    <p class="sub">This is the “represent” step. One file owns the shape change.</p>
+
+    <div class="card">
+      <div class="grid2" style="align-items:start">
+        <div>
+          <span class="tag a">what the server sends (DTO)</span>
+          <pre class="code" style="margin-top:8px">{
+  <b>id</b>: "p1",
+  <b>title</b>: "Aero Mug",
+  <b>price_cents</b>: 2400,
+  <b>created_at</b>: "2025-03-04T10:12:00Z",
+  <b>stock_qty</b>: 12
+}</pre>
+        </div>
+        <div>
+          <span class="tag g">what the app uses (model)</span>
+          <pre class="code" style="margin-top:8px">{
+  <b>id</b>: "p1",
+  <b>title</b>: "Aero Mug",
+  <b>price</b>: 24,
+  <b>createdAt</b>: Date,
+  <b>stock</b>: 12
+}</pre>
+        </div>
+      </div>
+
+      <pre class="code" style="margin-top:14px"><span class="file">src/types/product.js</span>export function mapProduct(dto) {
+  return {
+    id: dto.id,
+    title: dto.title,
+    price: dto.price_cents / 100,
+    createdAt: new Date(dto.created_at),
+    stock: dto.stock_qty,
+  };
+}</pre>
+
+      <p class="note" style="margin-top:14px">
+        <strong>Why bother?</strong> When the backend renames <code>price_cents</code>, you edit one
+        function. When you swap the API for a different one, you edit one function. And every component
+        stays ignorant of the server's vocabulary.
+      </p>
+    </div>
+  </section>
+
+  <!-- 5 ─────────────────────────────────────────────────── -->
+  <section class="sec">
+    <h2><span class="n">5</span> Answer the user's question, not the status code</h2>
+    <table>
+      <tr><th style="width:130px">What happened</th><th style="width:150px">What you catch</th><th>What the screen must say</th></tr>
+      <tr><td>Slow, still working</td><td><code>loading: true</code></td><td>A spinner <b>and</b> a disabled button. Silence looks broken.</td></tr>
+      <tr><td>200, zero items</td><td>`data.length === 0`</td><td>“No products match” — not an error, not a spinner.</td></tr>
+      <tr><td>404</td><td><code>HttpError.status === 404</code></td><td>“We couldn't find that product.” Different from a failure.</td></tr>
+      <tr><td>401 / 403</td><td><code>HttpError.status</code></td><td>“Sign in again” — the request will never succeed unaided.</td></tr>
+      <tr><td>500</td><td><code>HttpError.status === 500</code></td><td>“Something broke on our side. Retry.”</td></tr>
+      <tr><td>Network down</td><td><code>TypeError: Failed to fetch</code></td><td>“Check your connection.” Not the server's fault.</td></tr>
+      <tr><td>Aborted</td><td><code>err.name === 'AbortError'</code></td><td><b>Nothing.</b> The user caused it; do not show an error.</td></tr>
+    </table>
+  </section>
+
+  <!-- 6 ─────────────────────────────────────────────────── -->
+  <section class="sec">
+    <h2><span class="n">6</span> Three files, three jobs</h2>
+    <div class="grid3" style="margin-top:14px">
+      <div class="card stack">
+        <span class="tag b">services/http.js</span>
+        <h3>“How to speak HTTP”</h3>
+        <p style="margin:0;font-size:13px">Base URL, headers, JSON, status → <code>HttpError</code>, logging, the mock switch. Nothing about products.</p>
+      </div>
+      <div class="card stack">
+        <span class="tag b">services/productService.js</span>
+        <h3>“What the product endpoints are”</h3>
+        <p style="margin:0;font-size:13px">Three methods, three paths. Maps DTOs to models on the way out.</p>
+      </div>
+      <div class="card stack">
+        <span class="tag b">hooks/useProducts.js</span>
+        <h3>“What the screen needs”</h3>
+        <p style="margin:0;font-size:13px"><code>{ data, loading, error, reload }</code>. Owns the effect, the deps, the abort.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/* ── 2. request states ─────────────────────────────────── */
+(() => {
+  const ui = document.getElementById('ui');
+  const wire = document.getElementById('wire');
+  const phase = document.getElementById('phase');
+  const explain = document.getElementById('explain');
+  let run = 0;
+
+  function setUI(kind, body) {
+    phase.textContent = kind;
+    phase.className = 'tag ' + (kind === 'success' ? 'g' : kind === 'loading' ? 'b' : 'r');
+    ui.innerHTML = body;
+  }
+
+  async function send(mode) {
+    const id = ++run;
+    wire.innerHTML = '<span class="c">→ GET /products</span>\n…waiting';
+    setUI('loading', '<div class="spinner" style="width:26px;height:26px;border:3px solid #e3ecfc;border-top-color:#1f5fd6;border-radius:50%;animation:spin 800ms linear infinite"></div>');
+    explain.textContent = 'The user needs to know something is happening. A blank screen is indistinguishable from broken.';
+
+    await sleep(mode === 'slow' ? 1800 : 900);
+    if (id !== run) return;
+
+    if (mode === 'fail') {
+      wire.innerHTML = '<span class="r">← 500 Internal Server Error</span>';
+      setUI('error', '<div style="color:#b4302a"><b>Something went wrong.</b><br><span style="font-size:13px">Please try again.</span><br><button class="btn" style="margin-top:10px">Retry</button></div>');
+      explain.textContent = 'A 500 is not a crash. It is a normal outcome that needs its own screen — and a way back.';
+    } else if (mode === 'offline') {
+      wire.innerHTML = '<span class="r">✕ TypeError: Failed to fetch</span>';
+      setUI('error', '<div style="color:#b4302a"><b>No connection.</b><br><span style="font-size:13px">Check your network and retry.</span><br><button class="btn" style="margin-top:10px">Retry</button></div>');
+      explain.textContent = 'The request never reached a server. Blaming the server here sends the user to the wrong place.';
+    } else {
+      wire.innerHTML = '<span class="g">← 200 OK</span>\n[{ id: "p1", title: "Aero Mug", … }, …]';
+      setUI('success', '<div style="color:var(--ink)"><b>12 products.</b><br><span style="font-size:13px;color:var(--muted)">Now map the DTOs, then render the grid.</span></div>');
+      explain.textContent = 'Success is also a state you design: an empty list is not the same as a successful list.';
+    }
+  }
+
+  document.getElementById('ok').onclick = () => send('ok');
+  document.getElementById('fail').onclick = () => send('fail');
+  document.getElementById('off').onclick = () => send('offline');
+})();
+
+/* ── 3. race ───────────────────────────────────────────── */
+(() => {
+  const barA = document.getElementById('barA');
+  const barB = document.getElementById('barB');
+  const log = document.getElementById('racelog');
+  const result = document.getElementById('result');
+  let gen = 0;
+  let t0 = 0;
+
+  function clearBars() {
+    for (const b of [barA, barB]) {
+      b.style.transition = 'none';
+      b.style.width = '0%';
+      b.classList.remove('dead');
+    }
+  }
+
+  function note(text, kind) {
+    const t = ((performance.now() - t0) / 1000).toFixed(1);
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="t">${t}s</span><span class="${kind || ''}">${text}</span>`;
+    log.append(li);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function startBar(el, ms, done) {
+    el.style.transition = 'none';
+    el.style.width = '0%';
+    // force layout so the next assignment animates
+    void el.offsetWidth;
+    el.style.transition = `width ${ms}ms linear`;
+    el.style.width = '100%';
+    setTimeout(done, ms);
+  }
+
+  function freeze(el) {
+    const w = el.getBoundingClientRect().width;
+    el.style.transition = 'none';
+    el.style.width = w + 'px';
+    el.classList.add('dead');
+  }
+
+  function run({ abort }) {
+    gen += 1;
+    const my = gen;
+    t0 = performance.now();
+    clearBars();
+    log.innerHTML = '';
+    result.innerHTML = '<span style="color:var(--muted);font-weight:400">…</span>';
+
+    note(abort ? 'mode: abort on new keystroke' : 'mode: no cleanup', 'warn');
+    note('type “m” → effect runs → GET ?q=m');
+
+    startBar(barA, 2800, () => {
+      if (my !== gen || abort) return;
+      note('“m” responds with 3 items', 'err');
+      result.innerHTML = '<div><b style="color:#b4302a">3 results for “m”</b><br><span style="font-size:12.5px;color:var(--muted)">stale — the box says “mu”</span></div>';
+    });
+
+    setTimeout(() => {
+      if (my !== gen) return;
+      note('type “mu” → cleanup runs, then a new effect');
+      if (abort) {
+        freeze(barA);
+        note('abort() — the “m” request is cancelled', 'ok');
+      }
+      startBar(barB, 1000, () => {
+        if (my !== gen) return;
+        note('“mu” responds with 1 item', 'ok');
+        result.innerHTML = abort
+          ? '<div><b style="color:#1b7a3d">1 result for “mu”</b><br><span style="font-size:12.5px;color:var(--muted)">and nothing overwrites it</span></div>'
+          : '<div><b style="color:#b4302a">1 result for “mu”</b><br><span style="font-size:12.5px;color:var(--muted)">until the slow one lands…</span></div>';
+        if (!abort) {
+          setTimeout(() => {
+            if (my !== gen) return;
+            note('“m” responds late — it overwrites the screen', 'err');
+            result.innerHTML = '<div><b style="color:#b4302a">3 results for “m”</b><br><span style="font-size:12.5px;color:var(--muted)">stale result wins. No error shown.</span></div>';
+          }, 1300);
+        }
+      });
+    }, 500);
+  }
+
+  document.getElementById('race').onclick = () => run({ abort: false });
+  document.getElementById('abort').onclick = () => run({ abort: true });
+  document.getElementById('clear').onclick = () => {
+    gen += 1;
+    clearBars();
+    log.innerHTML = '';
+    result.innerHTML = '<span style="color:var(--muted);font-weight:400">Result goes here.</span>';
+  };
+})();
+
+/* spinner keyframes (kept local so the page stays standalone) */
+(() => {
+  const s = document.createElement('style');
+  s.textContent = '@keyframes spin { to { transform: rotate(360deg) } }';
+  document.head.append(s);
+})();
+</script>
+</body>
+</html>

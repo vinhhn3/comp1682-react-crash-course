@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { SearchBar } from '../components/product/SearchBar';
 import { ProductList } from '../components/product/ProductList';
+import { useState } from 'react';
 
 const PRODUCTS = [
   { id: 'p1', title: 'Aero Mug', category: 'Kitchen', price_cents: 2400, rating: 4.6, emoji: '☕' },
@@ -16,44 +17,43 @@ const PRODUCTS = [
   { id: 'p12', title: 'Wall Clock', category: 'Home', price_cents: 4200, rating: 4.5, emoji: '🕰️' },
 ];
 
-/**
- * Step 02: state lives here.
- *
- * Notice what this means: the header badge cannot see `cart`, and neither can a
- * cart page. That is not a bug in the code — it is the state living in the wrong
- * place. Step 03 lifts it to App, step 07 lifts it to a context.
- */
-export function ProductsPage() {
-  const [cart, setCart] = useState([]);
+export function ProductsPage({ onAdd }) {
+  const [query, setQuery] = useState('');
 
-  function addToCart(product) {
-    setCart((current) => {
-      const existing = current.find((line) => line.id === product.id);
-      if (existing) {
-        // new array, new object — never mutate
-        return current.map((line) =>
-          line.id === product.id ? { ...line, qty: line.qty + 1 } : line,
-        );
-      }
-      return [...current, { ...product, qty: 1 }];
-    });
-  }
-
-  const count = cart.reduce((total, line) => total + line.qty, 0);
+  // Derived, not stored. There is no "filteredCount" state anywhere.
+  const matches = PRODUCTS.filter((product) => {
+    const needle = query.trim().toLowerCase();
+    if (!needle) return true;
+    return (
+      product.title.toLowerCase().includes(needle) ||
+      product.category.toLowerCase().includes(needle)
+    );
+  });
 
   return (
     <div className="page">
       <div className="page-head">
         <div>
           <h1 className="page-title">Shop</h1>
-          <p className="page-sub">
-            Add works — but only this page can see the cart. The header badge still says 0.
-          </p>
+          <p className="page-sub">The cart now lives in App, so the header can see it.</p>
         </div>
-        <span className="pill">{count} in cart</span>
+        <span className="pill">
+          {matches.length} of {PRODUCTS.length}
+        </span>
       </div>
 
-      <ProductList products={PRODUCTS} onAdd={addToCart} />
+      <div className="toolbar">
+        <SearchBar value={query} onChange={setQuery} />
+      </div>
+
+      {matches.length === 0 ? (
+        <div className="empty" style={{ marginTop: 26 }}>
+          <strong>No products match “{query}”.</strong>
+          Try a different word.
+        </div>
+      ) : (
+        <ProductList products={matches} onAdd={onAdd} />
+      )}
     </div>
   );
 }
