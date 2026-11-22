@@ -1,0 +1,42 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/codetour/main/schemas/tour.schema.json",
+  "title": "01 — Components, props, lists",
+  "description": "Read the app top-down: page owns data, components render it.",
+  "steps": [
+    {
+      "file": "src/pages/ProductsPage.jsx",
+      "line": 4,
+      "description": "The page owns the data. Today it is a constant. In step 04 this becomes a fetch — and this file is the one that gets messy."
+    },
+    {
+      "file": "src/pages/ProductsPage.jsx",
+      "line": 24,
+      "description": "Notice the prop: products goes DOWN. There is no way for a child to send data back up except by calling a function we passed it."
+    },
+    {
+      "file": "src/components/product/ProductList.jsx",
+      "line": 6,
+      "description": "A list in React is just map(). It returns an array of elements, and React renders the array."
+    },
+    {
+      "file": "src/components/product/ProductList.jsx",
+      "line": 9,
+      "description": "key is identity, not position. Use product.id. If you use the index, React reuses the wrong DOM node when the list changes order."
+    },
+    {
+      "file": "src/components/product/ProductCard.jsx",
+      "line": 8,
+      "description": "One component = one function. Props in, JSX out. It knows nothing about carts, fetch, or where products come from."
+    },
+    {
+      "file": "src/components/product/ProductCard.jsx",
+      "line": 20,
+      "description": "The Add button exists but has no onClick yet. Step 02 adds one prop and the component still stays ignorant of cart logic."
+    },
+    {
+      "file": "src/components/layout/Header.jsx",
+      "line": 9,
+      "description": "A plain anchor. Clicking Cart does a full page reload — watch it happen. That is the pain that router fixes at step 08."
+    }
+  ]
+}
