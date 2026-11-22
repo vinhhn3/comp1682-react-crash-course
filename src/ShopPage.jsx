@@ -5,11 +5,12 @@ const ShopPage = ({ onAdd }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch('/api/products');
+        const res = await fetch(`/api/products?q=${query}`);
         const data = await res.json();
         setProducts(data);
       } catch (err) {
@@ -20,7 +21,7 @@ const ShopPage = ({ onAdd }) => {
     };
 
     fetchProducts();
-  }, []);
+  }, [query]);
 
   if (loading) {
     return <p>Loading...</p>;
@@ -32,6 +33,13 @@ const ShopPage = ({ onAdd }) => {
 
   return (
     <>
+      <input
+        className="input"
+        placeholder="Search products"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+      />
+
       {products.map((product) => (
         <ProductCard
           key={product.id}
