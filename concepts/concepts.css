@@ -1,3 +1,5 @@
+[hidden] { display: none !important; }
+
 /* Shared styles for the concepts/ pages. Self-contained, offline, no fonts. */
 
 :root {
@@ -321,3 +323,23 @@ td code, p code, li code, .note code { font: 12px var(--mono); background: #eef1
 @media (max-width: 760px) {
   .dg-split { grid-template-columns: 1fr; }
 }
+
+/* ── diff ──────────────────────────────────────────────── */
+.diff-box {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #0f1720;
+  overflow: auto;
+  max-height: 420px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.65;
+}
+.diff-box .f { display: block; margin-top: 12px; color: #8fa4bd; font-weight: 600; }
+.diff-box .f:first-child { margin-top: 0; }
+.diff-box .h { display: block; color: #5f7288; }
+.diff-box .add { display: block; color: #8fd8a8; background: rgba(40, 160, 90, 0.14); }
+.diff-box .del { display: block; color: #ff9a92; background: rgba(200, 60, 50, 0.14); }
+.diff-box .ctx { display: block; color: #9fb0c4; }
+.diff-stat { font: 12px var(--mono); color: var(--muted); }

@@ -49,6 +49,20 @@ npm run step 5
 
 Nothing else. No slides, no separate notes to keep in sync.
 
+### The second pass: the diff
+
+Every step page has a collapsed **“What changed since the last step”** card. It is
+the real `git diff` — the command is printed under the summary.
+
+Do this **after** the diagram, before you move on:
+
+1. read the summary out loud: *“four files changed, twenty-seven insertions, nine deletions”*
+2. open it and point at the red and the green
+3. say the line: **the diagram explains it, the diff proves it**
+
+If you would rather type it in the terminal, the exact command is on the card:
+`git diff s15-folders s16-router -- src`.
+
 ---
 
 ## The eight-minute dry run
