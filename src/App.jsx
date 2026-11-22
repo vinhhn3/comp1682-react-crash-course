@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { CartProvider } from './CartContext';
-import Header from './Header';
-import ShopPage from './ShopPage';
-import CartPage from './CartPage';
+import { CartProvider } from './context/CartContext';
+import Header from './components/Header';
+import ShopPage from './pages/ShopPage';
+import CartPage from './pages/CartPage';
 
 const App = () => {
   const [page, setPage] = useState('shop');
