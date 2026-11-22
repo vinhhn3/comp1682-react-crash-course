@@ -1,12 +1,35 @@
+import { useEffect, useState } from 'react';
 import ProductCard from './ProductCard';
 
-const products = [
-  { id: 1, title: 'Aero Mug', category: 'Kitchen', price: 24 },
-  { id: 2, title: 'Halo Headphones', category: 'Audio', price: 89 },
-  { id: 3, title: 'Fern Pot', category: 'Home', price: 32 },
-];
-
 const ShopPage = ({ onAdd }) => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch('/api/products');
+        const data = await res.json();
+        setProducts(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+
+  if (error) {
+    return <p>Something went wrong: {error}</p>;
+  }
+
   return (
     <>
       {products.map((product) => (

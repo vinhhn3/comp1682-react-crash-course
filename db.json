@@ -1,0 +1,10 @@
+{
+  "products": [
+    { "id": 1, "title": "Aero Mug", "category": "Kitchen", "price": 24 },
+    { "id": 2, "title": "Halo Headphones", "category": "Audio", "price": 89 },
+    { "id": 3, "title": "Fern Pot", "category": "Home", "price": 32 },
+    { "id": 4, "title": "Slate Keyboard", "category": "Desk", "price": 129 },
+    { "id": 5, "title": "Ember Candle", "category": "Home", "price": 18 },
+    { "id": 6, "title": "Field Backpack", "category": "Travel", "price": 74 }
+  ]
+}
