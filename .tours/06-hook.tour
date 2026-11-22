@@ -1,0 +1,47 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/codetour/main/schemas/tour.schema.json",
+  "title": "06 — the hook and the abort",
+  "description": "The effect leaves the component and gains a cleanup.",
+  "steps": [
+    {
+      "file": "src/hooks/useProducts.js",
+      "line": 15,
+      "description": "A hook is a plain function whose name starts with use. Nothing here is React-specific except the hooks it calls."
+    },
+    {
+      "file": "src/hooks/useProducts.js",
+      "line": 22,
+      "description": "One AbortController per effect run. This object is how you tell the network 'never mind'."
+    },
+    {
+      "file": "src/hooks/useProducts.js",
+      "line": 33,
+      "description": "AbortError is the one error you must swallow. The user caused it by typing; do not show them a failure."
+    },
+    {
+      "file": "src/hooks/useProducts.js",
+      "line": 42,
+      "description": "The cleanup. React calls it before the next effect and on unmount. Two lines, and the race is gone."
+    },
+    {
+      "file": "src/hooks/useProducts.js",
+      "line": 47,
+      "description": "The contract: data, loading, error, reload, searchTerm. Any component can consume this without knowing how it is implemented."
+    },
+    {
+      "file": "src/hooks/useDebounce.js",
+      "line": 9,
+      "description": "Every keystroke clears the previous timer. Only the last one fires. This is why one word produces one request."
+    },
+    {
+      "file": "src/components/common/DevPanel.jsx",
+      "line": 12,
+      "description": "The panel subscribes to the event bus and re-renders when a layer logs something. Open ?debug=1 and click Add."
+    },
+    {
+      "file": "src/pages/ProductsPage.jsx",
+      "line": 17,
+      "description": "One line replaces three useStates and an effect. This is what 'the page asks for products' looks like when the layers are right."
+    }
+  ]
+}

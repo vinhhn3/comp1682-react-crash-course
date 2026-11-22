@@ -1,43 +1,30 @@
-import { useEffect, useState } from 'react';
-import { productService } from '../services/productService';
+import { useState } from 'react';
+import { useProducts } from '../hooks/useProducts';
 import { ProductList } from '../components/product/ProductList';
 import { SearchBar } from '../components/product/SearchBar';
+import { ErrorCard } from '../components/common/ErrorCard';
+import { EmptyState } from '../components/common/EmptyState';
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   STEP 05 — the endpoint has moved out.
+   STEP 06 — one line of data logic.
 
-   The URL is gone from this file. If the backend changes, nothing here changes.
-   But the effect is still here: three pieces of state, no abort, and the same
-   four-line loading dance every screen will copy.
-
-   That is step 06.
+   Every line that used to be here (three useStates, the effect, the abort, the
+   loading flags) now lives in hooks/useProducts.js, where every other screen can
+   reuse it and where it can be tested without a browser.
    ──────────────────────────────────────────────────────────────────────────── */
 
 export function ProductsPage({ onAdd }) {
   const [query, setQuery] = useState('');
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-
-    productService
-      .getAll({ query })
-      .then((data) => setProducts(data))
-      .catch((err) => setError(err))
-      .finally(() => setLoading(false));
-  }, [query]);
+  const { data, loading, error, reload, searchTerm } = useProducts(query);
 
   return (
     <div className="page">
       <div className="page-head">
         <div>
           <h1 className="page-title">Shop</h1>
-          <p className="page-sub">The page asks for products. It no longer knows what a URL is.</p>
+          <p className="page-sub">Same behaviour as step 04. Different address.</p>
         </div>
-        <span className="pill">{products.length} shown</span>
+        <span className="pill">{data.length} shown</span>
       </div>
 
       <div className="toolbar">
@@ -52,27 +39,16 @@ export function ProductsPage({ onAdd }) {
       )}
 
       {error && !loading && (
-        <div className="error-card" style={{ marginTop: 26 }}>
-          <div className="error-card__body">
-            <strong>Could not load products</strong>
-            {error.message}
-          </div>
-          <button className="btn btn--ghost" type="button" onClick={() => setQuery((q) => q)}>
-            Retry
-          </button>
-        </div>
+        <ErrorCard title="Could not load products" error={error} onRetry={reload} />
       )}
 
-      {!loading && !error && products.length === 0 && (
-        <div className="empty" style={{ marginTop: 26 }}>
-          <strong>No products match “{query}”.</strong>
+      {!loading && !error && data.length === 0 && (
+        <EmptyState title={`No products match “${searchTerm}”.`}>
           Try a different word.
-        </div>
+        </EmptyState>
       )}
 
-      {!loading && !error && products.length > 0 && (
-        <ProductList products={products} onAdd={onAdd} />
-      )}
+      {!loading && !error && data.length > 0 && <ProductList products={data} onAdd={onAdd} />}
     </div>
   );
 }
