@@ -1,28 +1,22 @@
+const products = [
+  { id: 1, title: 'Aero Mug', category: 'Kitchen', price: 24 },
+  { id: 2, title: 'Halo Headphones', category: 'Audio', price: 89 },
+  { id: 3, title: 'Fern Pot', category: 'Home', price: 32 },
+];
+
 const App = () => {
   return (
     <div className="app">
       <h1>Shop</h1>
 
-      <div className="card">
-        <h2>Aero Mug</h2>
-        <p>Kitchen</p>
-        <p>$24</p>
-        <button>Add to cart</button>
-      </div>
-
-      <div className="card">
-        <h2>Halo Headphones</h2>
-        <p>Audio</p>
-        <p>$89</p>
-        <button>Add to cart</button>
-      </div>
-
-      <div className="card">
-        <h2>Fern Pot</h2>
-        <p>Home</p>
-        <p>$32</p>
-        <button>Add to cart</button>
-      </div>
+      {products.map((product) => (
+        <div className="card" key={product.id}>
+          <h2>{product.title}</h2>
+          <p>{product.category}</p>
+          <p>${product.price}</p>
+          <button>Add to cart</button>
+        </div>
+      ))}
     </div>
   );
 };
