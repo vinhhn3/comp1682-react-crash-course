@@ -8,19 +8,28 @@ const ShopPage = ({ onAdd }) => {
   const [query, setQuery] = useState('');
 
   useEffect(() => {
+    const controller = new AbortController();
+
     const fetchProducts = async () => {
       try {
-        const res = await fetch(`/api/products?q=${query}`);
+        const res = await fetch(`/api/products?q=${query}`, {
+          signal: controller.signal,
+        });
         const data = await res.json();
         setProducts(data);
+        setError(null);
       } catch (err) {
-        setError(err.message);
+        if (err.name !== 'AbortError') {
+          setError(err.message);
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchProducts();
+
+    return () => controller.abort();
   }, [query]);
 
   if (loading) {
