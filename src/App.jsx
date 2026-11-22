@@ -1,15 +1,11 @@
 import { useState } from 'react';
 import Header from './Header';
-import ProductCard from './ProductCard';
-
-const products = [
-  { id: 1, title: 'Aero Mug', category: 'Kitchen', price: 24 },
-  { id: 2, title: 'Halo Headphones', category: 'Audio', price: 89 },
-  { id: 3, title: 'Fern Pot', category: 'Home', price: 32 },
-];
+import ShopPage from './ShopPage';
+import CartPage from './CartPage';
 
 const App = () => {
   const [cart, setCart] = useState([]);
+  const [page, setPage] = useState('shop');
 
   const addToCart = (product) => {
     const found = cart.find((item) => item.id === product.id);
@@ -29,26 +25,12 @@ const App = () => {
 
   return (
     <div className="app">
-      <Header count={cart.length} />
+      <Header count={cart.length} page={page} onNavigate={setPage} />
 
-      {products.map((product) => (
-        <ProductCard
-          key={product.id}
-          product={product}
-          onAdd={() => addToCart(product)}
-        />
-      ))}
-
-      {cart.length > 0 && (
-        <div className="card">
-          <h2>Cart</h2>
-          {cart.map((item) => (
-            <p key={item.id}>
-              {item.qty} × {item.title} — ${item.price * item.qty}
-            </p>
-          ))}
-          <p className="count">Total: ${total}</p>
-        </div>
+      {page === 'shop' ? (
+        <ShopPage onAdd={addToCart} />
+      ) : (
+        <CartPage cart={cart} total={total} />
       )}
     </div>
   );

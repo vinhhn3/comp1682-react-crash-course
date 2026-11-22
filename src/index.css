@@ -72,3 +72,8 @@ button:hover {
 .header .count {
   margin: 0;
 }
+
+.nav {
+  display: flex;
+  gap: 8px;
+}
