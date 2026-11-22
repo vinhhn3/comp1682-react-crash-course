@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Course map — Market</title>
+<style>
+  :root {
+    --ink:#1e2a38; --body:#3a4655; --muted:#6b7889; --line:#dbe1ea;
+    --bg:#f7f8fa; --card:#fff; --accent:#1f5fd6; --soft:#e3ecfc; --dark:#16202c;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--body);
+    font: 16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 40px 28px 96px; }
+  header.top { display:flex; align-items:baseline; gap:16px; border-bottom:2px solid var(--ink); padding-bottom:14px; }
+  header.top h1 { margin:0; font-size:26px; color:var(--ink); letter-spacing:-.02em; }
+  header.top p { margin:0; color:var(--muted); font-size:14px; }
+  section { margin-top:56px; }
+  h2 { font-size:14px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted);
+       font-weight:700; margin:0 0 18px; }
+  h2 span { color:var(--accent); }
+  .note { color:var(--muted); font-size:13.5px; max-width:62ch; }
+  code, .mono { font-family:var(--mono); font-size:13px; }
+
+  /* layers */
+  .layers { display:flex; flex-direction:column; gap:0; max-width:520px; }
+  .layer { display:grid; grid-template-columns: 150px 1fr; align-items:center; gap:16px; }
+  .layer .box { border:1.5px solid var(--ink); border-radius:10px; background:var(--card);
+    padding:12px 16px; font-weight:650; color:var(--ink); }
+  .layer .box small { display:block; font-weight:400; color:var(--muted); font-size:12.5px; }
+  .layer .side { font-size:13px; color:var(--muted); }
+  .arrow { height:26px; margin-left:74px; border-left:1.5px dashed #9fb0c6; position:relative; }
+  .arrow::after { content:"▾"; position:absolute; left:-7px; bottom:-9px; color:#9fb0c6; font-size:13px; }
+  .forbidden { margin-top:18px; border:1.5px dashed #b4302a; border-radius:10px; padding:10px 14px;
+    color:#8d2a24; background:#fdeceb; font-size:13.5px; max-width:520px; }
+
+  /* tree */
+  .tree { font-family:var(--mono); font-size:13.5px; line-height:1.85; color:var(--ink);
+    background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px 24px; max-width:560px; }
+  .tree .c { color:var(--muted); }
+  .tree .a { color:var(--accent); }
+
+  /* chains */
+  .chain { display:flex; flex-direction:column; gap:0; max-width:760px; }
+  .step { display:grid; grid-template-columns: 210px 1fr; align-items:center; gap:16px; }
+  .step .who { font-family:var(--mono); font-size:13px; color:var(--ink); background:var(--card);
+    border:1.5px solid var(--ink); border-radius:9px; padding:9px 12px; }
+  .step .what { font-size:13.5px; color:var(--body); }
+  .step .what b { color:var(--accent); font-weight:600; }
+  .down { height:24px; margin-left:96px; border-left:1.5px dashed #9fb0c6; position:relative; }
+  .down::after { content:"▾"; position:absolute; left:-7px; bottom:-9px; color:#9fb0c6; font-size:13px; }
+  .net { border:1.5px solid var(--accent); background:var(--soft); }
+
+  /* matrix */
+  table { border-collapse:collapse; font-family:var(--mono); font-size:12.5px; background:var(--card); }
+  th, td { border:1px solid var(--line); padding:7px 11px; text-align:center; }
+  th { background:#eef2f8; color:var(--ink); font-weight:600; }
+  td.row { text-align:left; font-weight:600; background:#fbfcfe; }
+  .yes { color:#1b7a3d; } .no { color:#b4302a; } .self { color:#b9c2d0; }
+  .cols { display:grid; grid-template-columns:1fr 1fr; gap:40px; align-items:start; }
+  @media (max-width: 900px) { .cols { grid-template-columns:1fr; } }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px 20px; }
+  .kicker { font-size:12px; text-transform:uppercase; letter-spacing:.12em; color:var(--accent); font-weight:700; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>Course map</h1>
+    <p>Market — React crash course</p>
+  </header>
+
+  <!-- 1 -->
+  <section>
+    <h2><span>①</span> The layers</h2>
+    <div class="layers">
+      <div class="layer">
+        <div class="box">pages/<small>one file per route</small></div>
+        <div class="side">composes a screen, owns page state</div>
+      </div>
+      <div class="arrow"></div>
+      <div class="layer">
+        <div class="box">components/<small>common · layout · cart · product</small></div>
+        <div class="side">render, emit events. never see a URL</div>
+      </div>
+      <div class="arrow"></div>
+      <div class="layer">
+        <div class="box">hooks/<small>behaviour</small></div>
+        <div class="side">loading · error · retry · derived values</div>
+      </div>
+      <div class="arrow"></div>
+      <div class="layer">
+        <div class="box">services/<small>HTTP only, no React</small></div>
+        <div class="side">URLs, headers, status codes, DTO → model</div>
+      </div>
+      <div class="arrow"></div>
+      <div class="layer">
+        <div class="box">lib/ · config/ · types/<small>pure</small></div>
+        <div class="side">formatters, constants, shapes</div>
+      </div>
+    </div>
+    <div class="forbidden">
+      <b>Forbidden:</b> services importing a component, a component calling <code>fetch</code>,
+      pages importing <code>services/</code> directly. Dependencies point down only.
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section>
+    <h2><span>②</span> The tree</h2>
+    <div class="tree">
+<span class="a">&lt;App&gt;</span><br>
+&nbsp;└─ <span class="a">&lt;CartProvider&gt;</span> <span class="c">// context/</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;└─ &lt;AppLayout&gt; <span class="c">// layout/</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├─ &lt;Header&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└─ &lt;CartBadge&gt; <span class="c">// useCart()</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─ &lt;AppRouter&gt; <span class="c">// router/</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├─ &lt;ProductsPage&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├─ &lt;SearchBar&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└─ &lt;ProductList&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─ &lt;ProductCard&gt; ×12<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├─ &lt;ProductDetailPage&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─ &lt;CartPage&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├─ &lt;CartLine&gt; ×n<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─ &lt;CartSummary&gt;
+    </div>
+    <p class="note" style="margin-top:14px">
+      One screen change in a leaf re-renders that leaf, not the tree. Say it once, point at the
+      DevTools highlight, move on.
+    </p>
+  </section>
+
+  <!-- 3 -->
+  <section>
+    <h2><span>③</span> Read chain — data falls down</h2>
+    <div class="chain">
+      <div class="step">
+        <div class="who">pages/ProductsPage.jsx</div>
+        <div class="what">calls <b>useProducts(query)</b></div>
+      </div>
+      <div class="down"></div>
+      <div class="step">
+        <div class="who">hooks/useProducts.js</div>
+        <div class="what">sets <b>loading: true</b> → spinner appears</div>
+      </div>
+      <div class="down"></div>
+      <div class="step">
+        <div class="who">services/productService.js</div>
+        <div class="what">builds <b>GET /products?q=…</b>, passes the abort signal</div>
+      </div>
+      <div class="down"></div>
+      <div class="step">
+        <div class="who">services/http.js</div>
+        <div class="what net">logs the call · chaos checks · <b>network</b></div>
+      </div>
+      <div class="down"></div>
+      <div class="step">
+        <div class="who">types/product.js</div>
+        <div class="what"><b>mapProduct(dto)</b> — <code>price_cents</code> becomes <code>price</code></div>
+      </div>
+      <div class="down"></div>
+      <div class="step">
+        <div class="who">hooks/useProducts.js</div>
+        <div class="what">setData(models) · <b>loading: false</b></div>
+      </div>
+      <div class="down"></div>
+      <div class="step">
+        <div class="who">pages/ProductsPage.jsx</div>
+        <div class="what">re-renders → <b>&lt;ProductList products={data} /&gt;</b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section>
+    <h2><span>④</span> Write chain — events climb, then fall back</h2>
+    <div class="chain">
+      <div class="step">
+        <div class="who">components/ProductCard.jsx</div>
+        <div class="what">click → <b>onAdd(product)</b> — knows nothing about carts</div>
+      </div>
+      <div class="down"></div>
+      <div class="step">
+        <div class="who">hooks/useCart.js</div>
+        <div class="what"><b>add(id)</b> → optimistic state, then <b>cartService.add</b></div>
+      </div>
+      <div class="down"></div>
+      <div class="step">
+        <div class="who">services/cartService.js</div>
+        <div class="what"><b>POST /cart</b> → returns the whole cart</div>
+      </div>
+      <div class="down"></div>
+      <div class="step">
+        <div class="who">context/CartContext.jsx</div>
+        <div class="what">value changes → <b>only</b> consumers re-render</div>
+      </div>
+    </div>
+    <p class="note" style="margin-top:16px">
+      Reads walk down the stack. Writes climb up as events, then come back down as state.
+      If the screen is wrong, walk down. If the click does nothing, walk up.
+    </p>
+  </section>
+
+  <!-- 5 -->
+  <section>
+    <h2><span>⑤</span> Who may import whom</h2>
+    <table>
+      <tr>
+        <th>from ↓</th><th>pages</th><th>comp</th><th>hooks</th><th>ctx</th>
+        <th>svc</th><th>lib</th><th>cfg</th><th>types</th>
+      </tr>
+      <tr><td class="row">pages</td><td class="self">·</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">✕</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+      <tr><td class="row">components</td><td class="no">✕</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">✕</td><td class="no">✕</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+      <tr><td class="row">hooks</td><td class="no">✕</td><td class="no">✕</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+      <tr><td class="row">context</td><td class="no">✕</td><td class="no">✕</td><td class="yes">✓</td><td class="self">·</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+      <tr><td class="row">services</td><td class="no">✕</td><td class="no">✕</td><td class="no">✕</td><td class="no">✕</td><td class="self">·</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+      <tr><td class="row">lib / config</td><td class="no">✕</td><td class="no">✕</td><td class="no">✕</td><td class="no">✕</td><td class="no">✕</td><td class="self">·</td><td class="self">·</td><td class="yes">✓</td></tr>
+    </table>
+    <p class="note" style="margin-top:14px">
+      One sentence covers the table: <b>only hooks touch services</b>. A service never sees JSX;
+      a component never sees a URL.
+    </p>
+  </section>
+
+</div>
+</body>
+</html>
