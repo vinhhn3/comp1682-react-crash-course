@@ -1,9 +1,11 @@
+import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { CartLine } from '../components/cart/CartLine';
 import { CartSummary } from '../components/cart/CartSummary';
 import { EmptyState } from '../components/common/EmptyState';
+import { ROUTES } from '../config/routes';
 
-export function CartPage({ onShop }) {
+export function CartPage() {
   const { items, setQty, remove } = useCart();
   const count = items.reduce((sum, line) => sum + line.qty, 0);
 
@@ -14,12 +16,10 @@ export function CartPage({ onShop }) {
         <p className="page-sub">Nothing here yet.</p>
 
         <div style={{ marginTop: 24 }}>
-          <EmptyState title="Your cart is empty">Pick something from the shop.</EmptyState>
+          <EmptyState title="Your cart is empty">
+            Pick something from the <Link to={ROUTES.shop}>shop</Link>.
+          </EmptyState>
         </div>
-
-        <button className="btn btn--primary" type="button" style={{ marginTop: 16 }} onClick={onShop}>
-          Back to shop
-        </button>
       </div>
     );
   }
@@ -30,7 +30,7 @@ export function CartPage({ onShop }) {
         <div>
           <h1 className="page-title">Cart</h1>
           <p className="page-sub">
-            {count} {count === 1 ? 'item' : 'items'} — the page reads this from context
+            {count} {count === 1 ? 'item' : 'items'} — read from context, not passed down
           </p>
         </div>
       </div>

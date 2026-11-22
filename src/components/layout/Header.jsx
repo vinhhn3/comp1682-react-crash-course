@@ -1,42 +1,34 @@
+import { Link, NavLink } from 'react-router-dom';
 import { CartBadge } from '../cart/CartBadge';
+import { ROUTES } from '../../config/routes';
 
 /**
- * Step 07: the cart props are gone. `count` used to travel App → AppLayout →
- * Header. Now the badge reads it from context and the middle two components
- * do not know the cart exists.
- *
- * Navigation is still props — and that is correct. Not everything belongs in a
- * context.
+ * Step 08: no props. The active link comes from the URL, the badge comes from
+ * context, and the shell no longer knows that pages exist.
  */
-export function Header({ page, onNavigate }) {
+export function Header() {
+  const linkClass = ({ isActive }) => `nav__link ${isActive ? 'nav__link--active' : ''}`;
+
   return (
     <header className="site-header">
       <div className="container site-header__inner">
-        <button className="brand" type="button" onClick={() => onNavigate('products')}>
+        <Link className="brand" to={ROUTES.shop}>
           Market
-        </button>
+        </Link>
 
         <nav className="nav">
-          <button
-            className={`nav__link ${page === 'products' ? 'nav__link--active' : ''}`}
-            type="button"
-            onClick={() => onNavigate('products')}
-          >
+          <NavLink to={ROUTES.shop} end className={linkClass}>
             Shop
-          </button>
-          <button
-            className={`nav__link ${page === 'cart' ? 'nav__link--active' : ''}`}
-            type="button"
-            onClick={() => onNavigate('cart')}
-          >
+          </NavLink>
+          <NavLink to={ROUTES.cart} className={linkClass}>
             Cart
-          </button>
+          </NavLink>
         </nav>
 
-        <button className="cart-button" type="button" onClick={() => onNavigate('cart')}>
+        <Link className="cart-button" to={ROUTES.cart}>
           Cart
           <CartBadge />
-        </button>
+        </Link>
       </div>
     </header>
   );

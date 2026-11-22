@@ -1,10 +1,10 @@
 import { Header } from './Header';
 
-/** Step 07: no more forwarding `count`. The shell stopped caring. */
-export function AppLayout({ page, onNavigate, children }) {
+/** The shell. It renders a header and a slot, and nothing else. */
+export function AppLayout({ children }) {
   return (
     <div className="shell">
-      <Header page={page} onNavigate={onNavigate} />
+      <Header />
       <main className="container">{children}</main>
     </div>
   );

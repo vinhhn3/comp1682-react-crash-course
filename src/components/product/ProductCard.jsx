@@ -1,9 +1,11 @@
+import { Link } from 'react-router-dom';
 import { Button } from '../common/Button';
 import { formatCurrency } from '../../lib/formatCurrency';
+import { ROUTES } from '../../config/routes';
 
 /**
- * `product` is a model now, not a DTO. Note `product.price`, not `price_cents`.
- * The component never learns what the server calls things.
+ * The title is a real link, so the URL owns the navigation.
+ * The Add button stays outside the link: a button inside an anchor is a bug.
  */
 export function ProductCard({ product, onAdd }) {
   return (
@@ -12,7 +14,9 @@ export function ProductCard({ product, onAdd }) {
         {product.emoji}
       </div>
       <div className="card__body">
-        <h3 className="card__title">{product.title}</h3>
+        <h3 className="card__title">
+          <Link to={ROUTES.product(product.id)}>{product.title}</Link>
+        </h3>
         <div className="card__meta">
           <span>{product.category}</span>
           <span>·</span>
