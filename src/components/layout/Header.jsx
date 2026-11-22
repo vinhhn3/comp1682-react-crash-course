@@ -1,10 +1,14 @@
+import { CartBadge } from '../cart/CartBadge';
+
 /**
- * Step 03: navigation is a piece of state in App, passed down as `onNavigate`.
- * The header does not use `count` for anything except the badge, and it does not
- * use `page` for anything except the active class — but both have to arrive here
- * anyway. Remember this at 2:35.
+ * Step 07: the cart props are gone. `count` used to travel App → AppLayout →
+ * Header. Now the badge reads it from context and the middle two components
+ * do not know the cart exists.
+ *
+ * Navigation is still props — and that is correct. Not everything belongs in a
+ * context.
  */
-export function Header({ page, count, onNavigate }) {
+export function Header({ page, onNavigate }) {
   return (
     <header className="site-header">
       <div className="container site-header__inner">
@@ -31,7 +35,7 @@ export function Header({ page, count, onNavigate }) {
 
         <button className="cart-button" type="button" onClick={() => onNavigate('cart')}>
           Cart
-          <span className={count > 0 ? 'badge' : 'badge badge--muted'}>{count}</span>
+          <CartBadge />
         </button>
       </div>
     </header>

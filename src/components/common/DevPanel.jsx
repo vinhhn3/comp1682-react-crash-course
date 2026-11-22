@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react';
+import { useCart } from '../../context/CartContext';
 import { getEvents, subscribe } from '../../lib/devlog';
 
 /**
  * Open with ?debug=1.
  *
  * It shows two things: the state you chose to expose, and the last eight events
- * across the layers. When a click does nothing, look here before you open DevTools.
+ * across the layers. Step 07: the panel reads the cart from context, like any
+ * other consumer.
  */
-export function DevPanel({ info }) {
+export function DevPanel() {
   const enabled = new URLSearchParams(window.location.search).has('debug');
+  const { items, count, total } = useCart();
   const [, bump] = useState(0);
 
   useEffect(() => {
@@ -18,11 +21,17 @@ export function DevPanel({ info }) {
 
   if (!enabled) return null;
 
+  const snapshot = {
+    cartLines: items.length,
+    count,
+    total: Number(total.toFixed(2)),
+  };
+
   return (
     <aside className="devpanel">
       <section>
         <h4>state</h4>
-        <pre>{JSON.stringify(info, null, 1)}</pre>
+        <pre>{JSON.stringify(snapshot, null, 1)}</pre>
       </section>
 
       <section>

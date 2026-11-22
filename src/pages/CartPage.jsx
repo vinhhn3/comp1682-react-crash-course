@@ -1,11 +1,13 @@
+import { useCart } from '../context/CartContext';
 import { CartLine } from '../components/cart/CartLine';
 import { CartSummary } from '../components/cart/CartSummary';
 import { EmptyState } from '../components/common/EmptyState';
 
-export function CartPage({ cart, onQty, onRemove, onShop }) {
-  const count = cart.reduce((sum, line) => sum + line.qty, 0);
+export function CartPage({ onShop }) {
+  const { items, setQty, remove } = useCart();
+  const count = items.reduce((sum, line) => sum + line.qty, 0);
 
-  if (cart.length === 0) {
+  if (items.length === 0) {
     return (
       <div className="page">
         <h1 className="page-title">Cart</h1>
@@ -28,21 +30,19 @@ export function CartPage({ cart, onQty, onRemove, onShop }) {
         <div>
           <h1 className="page-title">Cart</h1>
           <p className="page-sub">
-            {count} {count === 1 ? 'item' : 'items'}
+            {count} {count === 1 ? 'item' : 'items'} — the page reads this from context
           </p>
         </div>
       </div>
 
       <div className="cart">
         <div className="cart__lines">
-          {/* key={line.id} — identity, not position. See docs/step-03.md for the
-              thirty-second demo that proves why the index is wrong. */}
-          {cart.map((line) => (
-            <CartLine key={line.id} line={line} onQty={onQty} onRemove={onRemove} />
+          {items.map((line) => (
+            <CartLine key={line.id} line={line} onQty={setQty} onRemove={remove} />
           ))}
         </div>
 
-        <CartSummary items={cart} />
+        <CartSummary items={items} />
       </div>
     </div>
   );

@@ -1,28 +1,29 @@
 import { useState } from 'react';
 import { useProducts } from '../hooks/useProducts';
+import { useCart } from '../context/CartContext';
 import { ProductList } from '../components/product/ProductList';
 import { SearchBar } from '../components/product/SearchBar';
 import { ErrorCard } from '../components/common/ErrorCard';
 import { EmptyState } from '../components/common/EmptyState';
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   STEP 06 — one line of data logic.
+   STEP 07 — two hooks, no props.
 
-   Every line that used to be here (three useStates, the effect, the abort, the
-   loading flags) now lives in hooks/useProducts.js, where every other screen can
-   reuse it and where it can be tested without a browser.
+   Data in from useProducts. Actions out through useCart. The page no longer
+   receives onAdd, and no component above it has to know the cart exists.
    ──────────────────────────────────────────────────────────────────────────── */
 
-export function ProductsPage({ onAdd }) {
+export function ProductsPage() {
   const [query, setQuery] = useState('');
   const { data, loading, error, reload, searchTerm } = useProducts(query);
+  const { add } = useCart();
 
   return (
     <div className="page">
       <div className="page-head">
         <div>
           <h1 className="page-title">Shop</h1>
-          <p className="page-sub">Same behaviour as step 04. Different address.</p>
+          <p className="page-sub">Data from a hook, actions from context. Nothing is passed in.</p>
         </div>
         <span className="pill">{data.length} shown</span>
       </div>
@@ -43,12 +44,10 @@ export function ProductsPage({ onAdd }) {
       )}
 
       {!loading && !error && data.length === 0 && (
-        <EmptyState title={`No products match “${searchTerm}”.`}>
-          Try a different word.
-        </EmptyState>
+        <EmptyState title={`No products match “${searchTerm}”.`}>Try a different word.</EmptyState>
       )}
 
-      {!loading && !error && data.length > 0 && <ProductList products={data} onAdd={onAdd} />}
+      {!loading && !error && data.length > 0 && <ProductList products={data} onAdd={add} />}
     </div>
   );
 }
