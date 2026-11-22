@@ -1,4 +1,8 @@
-const Header = ({ count, page, onNavigate }) => {
+import { useCart } from './CartContext';
+
+const Header = ({ page, onNavigate }) => {
+  const { count } = useCart();
+
   return (
     <header className="header">
       <h1>Shop</h1>
