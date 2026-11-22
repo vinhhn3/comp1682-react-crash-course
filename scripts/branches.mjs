@@ -22,15 +22,18 @@ function run(cmd) {
   }
 }
 
-const all = run('git branch --format=%(refname:short)').split('\n').filter(Boolean);
+const all = run('git for-each-ref --format="%(refname:short)" refs/heads')
+  .split('\n')
+  .filter(Boolean);
 const current = run('git branch --show-current');
+const effective = current === 'main' ? '08-router' : current;
 
 console.log('');
 for (const [name, note] of STEPS) {
   const exists = all.includes(name);
-  const mark = name === current ? '▶' : exists ? ' ' : '✗';
+  const mark = name === effective ? '▶' : exists ? ' ' : '✗';
   const label = exists ? name : `${name} (missing)`;
-  console.log(` ${mark} ${label.padEnd(24)} ${note}`);
+  console.log(` ${mark} ${label.padEnd(26)} ${note}`);
 }
 console.log('');
 console.log(` current: ${current || '(detached)'}`);
