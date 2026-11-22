@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import ProductCard from './ProductCard';
 
 const products = [
@@ -7,12 +8,20 @@ const products = [
 ];
 
 const App = () => {
+  const [count, setCount] = useState(0);
+
+  const addToCart = () => {
+    setCount(count + 1);
+  };
+
   return (
     <div className="app">
       <h1>Shop</h1>
 
+      <p className="count">Cart: {count}</p>
+
       {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
+        <ProductCard key={product.id} product={product} onAdd={addToCart} />
       ))}
     </div>
   );
