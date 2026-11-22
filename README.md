@@ -17,6 +17,20 @@ npm run step 11    # jump to step 11
 
 The dev server keeps running when you switch branches.
 
+## Three zones
+
+| Zone | Where | What it is for |
+|---|---|---|
+| **CODE** | VS Code | the branch |
+| **WEB** | `http://localhost:5173` | the running app |
+| **CONCEPT** | `http://localhost:5173/concepts/step.html` | the explanation for the current step |
+
+The concept tab asks the dev server which branch is checked out, so `npm run step 5`
+changes the code and the explanation together. `npm run concept` opens it once.
+
+Start with [`START-HERE.md`](START-HERE.md); the minute-by-minute script is
+[`docs/run-sheet.md`](docs/run-sheet.md).
+
 | # | Branch | The one thing it teaches |
 |---|---|---|
 | 0 | `s00-start` | one heading, no components |
