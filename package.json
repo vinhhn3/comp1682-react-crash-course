@@ -8,7 +8,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "branches": "node scripts/branches.mjs"
+    "branches": "node scripts/branches.mjs",
+    "step": "node scripts/step.mjs"
   },
   "dependencies": {
     "react": "^19.3.1",
