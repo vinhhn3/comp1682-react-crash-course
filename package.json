@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "step": "node scripts/step.mjs",
     "server": "json-server --watch db.json --port 8000 --delay 400",
-    "server:slow": "json-server --watch db.json --port 8000 --delay 2000"
+    "server:slow": "json-server --watch db.json --port 8000 --delay 2000",
+    "concept": "node scripts/concept.mjs"
   },
   "dependencies": {
     "react": "^19.3.1",

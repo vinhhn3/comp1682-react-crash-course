@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hooks — one render, one snapshot</title>
+<link rel="stylesheet" href="concepts.css" />
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="topnav">
+    <a href="index.html">Concepts</a>
+    <a class="here" href="hooks.html">Hooks</a>
+    <a href="api.html">API handling</a>
+    <a href="context.html">Context</a>
+  </nav>
+
+  <p class="kicker">Hooks</p>
+  <h1>One render, one snapshot</h1>
+  <p class="lede">
+    Almost every hooks bug comes from one wrong mental model: that <code>count</code> is a variable
+    that changes. It is not. It is a <b>constant inside one call</b> of the component function.
+    Click the buttons below and watch it.
+  </p>
+
+  <!-- 1 ─────────────────────────────────────────────────── -->
+  <section class="sec">
+    <h2><span class="n">1</span> State is a snapshot, not a variable</h2>
+    <p class="sub">Each click runs the component again, top to bottom, with new constants. The old ones are gone.</p>
+
+    <div class="grid2">
+      <div class="card" style="padding:0;overflow:hidden">
+        <pre class="code"><span class="file">src/components/Counter.jsx</span>function Counter() {
+  const [count, setCount] = <b>useState(0)</b>;
+
+  return (
+    &lt;button onClick={() =&gt; setCount(count + 1)}&gt;
+      {count}
+    &lt;/button&gt;
+  );
+}</pre>
+      </div>
+
+      <div class="card stack">
+        <div class="spread">
+          <h3>What is on screen</h3>
+          <span class="tag">render <span id="rn">1</span></span>
+        </div>
+        <div id="screen" style="display:grid;place-items:center;height:92px;border-radius:10px;background:#eef2f8;font:700 34px var(--mono);color:var(--ink)">0</div>
+        <div class="btns">
+          <button class="btn pri" id="one">setCount(count + 1)</button>
+          <button class="btn" id="twice">…twice</button>
+          <button class="btn" id="fn">setCount(c =&gt; c + 1) ×2</button>
+          <button class="btn" id="reset">reset</button>
+        </div>
+        <p class="note" id="verdict" style="font-size:12.5px">Click “twice” and predict the result before you look.</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h3 style="margin-bottom:8px">Every render, in order (newest first)</h3>
+      <ul class="log" id="renders"></ul>
+    </div>
+  </section>
+
+  <!-- 2 ─────────────────────────────────────────────────── -->
+  <section class="sec">
+    <h2><span class="n">2</span> useEffect is a contract, not a lifecycle</h2>
+    <p class="sub">Pick a dependency array, then press the buttons. The log is the only truth.</p>
+
+    <div class="grid2">
+      <div class="card stack">
+        <div class="spread">
+          <h3>Dependency array</h3>
+          <span class="tag" id="modeTag">[query]</span>
+        </div>
+        <div class="btns">
+          <button class="btn" data-mode="none">no array</button>
+          <button class="btn on" data-mode="dep">[query]</button>
+          <button class="btn" data-mode="array">[]</button>
+        </div>
+
+        <pre class="code" id="effectCode"></pre>
+
+        <div class="btns">
+          <button class="btn pri" id="rerender">re-render (same deps)</button>
+          <button class="btn" id="change">type in search</button>
+          <button class="btn warn" id="unmount">unmount</button>
+          <button class="btn" id="fxreset">reset</button>
+        </div>
+      </div>
+
+      <div class="card stack">
+        <div class="spread"><h3>What actually runs</h3><span class="tag" id="queryTag">query = “”</span></div>
+        <ul class="log" id="fxlog" style="max-height:330px"></ul>
+      </div>
+    </div>
+
+    <div class="grid3" style="margin-top:16px">
+      <div class="card"><span class="tag r">no array</span><p style="margin:8px 0 0;font-size:13px">Runs after <b>every</b> render. Cleanup runs before each re-run.</p></div>
+      <div class="card"><span class="tag a">[query]</span><p style="margin:8px 0 0;font-size:13px">Runs on mount, and again whenever <b>query</b> changes. Cleanup before each re-run.</p></div>
+      <div class="card"><span class="tag g">[]</span><p style="margin:8px 0 0;font-size:13px">Runs <b>once</b> on mount. Cleanup only on unmount.</p></div>
+    </div>
+
+    <p class="note" style="margin-top:16px">
+      <strong>StrictMode:</strong> in dev, React mounts, unmounts, and mounts again — so you will see
+      the effect and cleanup twice. That is deliberate; it catches missing cleanups. Production runs it once.
+    </p>
+  </section>
+
+  <!-- 3 ─────────────────────────────────────────────────── -->
+  <section class="sec">
+    <h2><span class="n">3</span> Cleanup is what makes the race disappear</h2>
+    <p class="sub">Every keystroke starts a request. The cleanup cancels the one before it.</p>
+
+    <div class="card stack">
+      <div class="flow">
+        <div class="node on">keystroke “m” <small>render 1 → effect → GET /products?q=m</small></div>
+        <div class="link lit"></div>
+        <div class="node bad">keystroke “mu” <small>cleanup runs first → abort the “m” request → then the new effect</small></div>
+        <div class="link"></div>
+        <div class="node off">the “m” response arrives <small>but its signal is aborted — it can never call setState</small></div>
+      </div>
+      <pre class="code"><span class="file">src/hooks/useProducts.js</span>useEffect(() =&gt; {
+  const controller = new AbortController();
+
+  const fetchProducts = async () =&gt; {
+    try {
+      const data = await getProducts(query, <b>controller.signal</b>);
+      setProducts(data);
+    } catch (err) {
+      if (err.name !== 'AbortError') setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchProducts();
+
+  <b>return () =&gt; controller.abort();</b>   <span class="c">// ← this is the cleanup</span>
+}, [query]);</pre>
+    </div>
+  </section>
+
+  <!-- 4 ─────────────────────────────────────────────────── -->
+  <section class="sec">
+    <h2><span class="n">4</span> Hooks are positional</h2>
+    <p class="sub">React does not look at names. It keeps a list, and it counts. Skip a hook and everything after it shifts by one.</p>
+
+    <div class="grid2">
+      <div class="card stack">
+        <span class="tag r">broken</span>
+        <pre class="code">if (user) {
+  <span class="r">const [name, setName] = useState('')</span>
+}
+const [age, setAge] = useState(0)
+
+<span class="c">render 1 (user = null): slots → [age]
+render 2 (user = ana):  slots → [name, age]
+                           ^ age now reads the name slot</span></pre>
+      </div>
+      <div class="card stack">
+        <span class="tag g">fixed</span>
+        <pre class="code">const [name, setName] = useState('')
+const [age, setAge] = useState(0)
+
+if (user) {
+  <span class="g">// use the hooks, do not create them</span>
+}</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 ─────────────────────────────────────────────────── -->
+  <section class="sec">
+    <h2><span class="n">5</span> The four bugs you will actually write</h2>
+    <div class="grid2" style="margin-top:14px">
+
+      <div class="card stack">
+        <span class="tag r">infinite loop</span>
+        <pre class="code">useEffect(() =&gt; {
+  setData(compute())      <span class="c">// sets state…</span>
+})                        <span class="c">// …on every render</span></pre>
+        <p style="font-size:13px;margin:0">No array = runs after every render = new render = forever.</p>
+      </div>
+
+      <div class="card stack">
+        <span class="tag r">stale closure</span>
+        <pre class="code">useEffect(() =&gt; {
+  const id = setInterval(() =&gt; {
+    setCount(<b>count + 1</b>)   <span class="c">// frozen at 0</span>
+  }, 1000)
+}, [])</pre>
+        <p style="font-size:13px;margin:0">The effect captured the first render's <code>count</code>. Use <code>c =&gt; c + 1</code>.</p>
+      </div>
+
+      <div class="card stack">
+        <span class="tag r">async callback</span>
+        <pre class="code"><span class="r">useEffect(async () =&gt; {</span>
+  const data = await fetch(...)
+}, [])</pre>
+        <p style="font-size:13px;margin:0">It must return the cleanup, not a Promise. Call an inner <code>async</code> function instead.</p>
+      </div>
+
+      <div class="card stack">
+        <span class="tag r">no cleanup</span>
+        <pre class="code">useEffect(() =&gt; {
+  fetch(url).then(setData)
+}, [url])</pre>
+        <p style="font-size:13px;margin:0">Type fast: two requests, no ordering. The last one to arrive wins — and it may be the wrong one.</p>
+      </div>
+
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ── 1. render snapshot ─────────────────────────────────── */
+(() => {
+  const screen = document.getElementById('screen');
+  const rn = document.getElementById('rn');
+  const list = document.getElementById('renders');
+  const verdict = document.getElementById('verdict');
+
+  let stored = 0;
+  let render = 1;
+  const rows = [{ left: 'R1', text: 'renders with count = 0', kind: 'ok' }];
+
+  function draw() {
+    screen.textContent = stored;
+    rn.textContent = render;
+    list.innerHTML = rows
+      .map((r) => `<li><span class="t">${r.left}</span><span class="${r.kind || ''}">${r.text}</span></li>`)
+      .join('');
+  }
+
+  function commit(label, modes) {
+    const seen = stored;          // what this render's `count` says
+    let draft = stored;
+    const parts = [];
+
+    for (const mode of modes) {
+      if (mode === 'value') {
+        draft = seen + 1;         // both reads see the same snapshot
+        parts.push(`count is ${seen} → setCount(${seen + 1})`);
+      } else {
+        draft = draft + 1;
+        parts.push(`update(c => c + 1) → ${draft}`);
+      }
+    }
+
+    stored = draft;
+    render += 1;
+    rows.unshift({ left: 'click', text: parts.join('  ·  '), kind: '' });
+    rows.unshift({ left: 'R' + render, text: 'renders with count = ' + stored, kind: 'ok' });
+    draw();
+
+    if (modes.length === 2 && modes[0] === 'value') {
+      verdict.innerHTML = '<b>Only +1.</b> Both updates read the same snapshot (0). A snapshot is not a live variable.';
+    } else if (modes.length === 2) {
+      verdict.innerHTML = '<b>+2.</b> The functional form hands each update the latest pending value, not the snapshot.';
+    } else {
+      verdict.textContent = 'One click, one new render, one new constant.';
+    }
+  }
+
+  document.getElementById('one').onclick = () => commit('one', ['value']);
+  document.getElementById('twice').onclick = () => commit('twice', ['value', 'value']);
+  document.getElementById('fn').onclick = () => commit('fn', ['fn', 'fn']);
+  document.getElementById('reset').onclick = () => {
+    stored = 0; render = 1; rows.length = 0;
+    rows.push({ left: 'R1', text: 'renders with count = 0', kind: 'ok' });
+    verdict.textContent = 'Click “twice” and predict the result before you look.';
+    draw();
+  };
+
+  draw();
+})();
+
+/* ── 2. useEffect simulator ─────────────────────────────── */
+(() => {
+  const log = document.getElementById('fxlog');
+  const code = document.getElementById('effectCode');
+  const modeTag = document.getElementById('modeTag');
+  const queryTag = document.getElementById('queryTag');
+
+  const CODE = {
+    none: `<span class="file">useProducts.js</span>useEffect(() =&gt; {
+  fetch('/api/products?q=' + query)
+    .then(setProducts);
+<span class="c">})                        // no array</span>`,
+    dep: `<span class="file">useProducts.js</span>useEffect(() =&gt; {
+  fetch('/api/products?q=' + query)
+    .then(setProducts);
+<span class="c">}, [query])               // re-run when query changes</span>`,
+    array: `<span class="file">useProducts.js</span>useEffect(() =&gt; {
+  fetch('/api/products?q=' + query)
+    .then(setProducts);
+<span class="c">}, [])                    // run once, on mount</span>`,
+  };
+  const LABEL = { none: 'no array', dep: '[query]', array: '[]' };
+
+  const fx = { mode: 'dep', query: '', active: false, mounted: false, rows: [] };
+
+  function push(tag, text, kind) {
+    fx.rows.unshift({ tag, text, kind: kind || '' });
+    if (fx.rows.length > 40) fx.rows.pop();
+    log.innerHTML = fx.rows
+      .map((r) => `<li><span class="t">${r.tag}</span><span class="${r.kind}">${r.text}</span></li>`)
+      .join('');
+  }
+
+  function draw() {
+    code.innerHTML = CODE[fx.mode];
+    modeTag.textContent = LABEL[fx.mode];
+    queryTag.textContent = `query = “${fx.query}”`;
+    document.querySelectorAll('[data-mode]').forEach((b) => {
+      b.classList.toggle('on', b.dataset.mode === fx.mode);
+    });
+  }
+
+  function cycle({ initial = false, depChanged = false } = {}) {
+    if (!fx.mounted) return;
+    push('render', 'component function runs');
+
+    if (fx.mode === 'none') {
+      if (fx.active) { push('cleanup', 'cleanup() runs (before re-run)', 'warn'); fx.active = false; }
+      push('effect', 'effect runs → fetch()', 'ok');
+      fx.active = true;
+      return;
+    }
+
+    if (fx.mode === 'array') {
+      if (!initial) { push('—', 'nothing happens (deps unchanged)', 'warn'); return; }
+      push('effect', 'effect runs once → fetch()', 'ok');
+      fx.active = true;
+      return;
+    }
+
+    // [query]
+    if (!initial && !depChanged) { push('—', 'nothing happens (query unchanged)', 'warn'); return; }
+    if (fx.active) { push('cleanup', 'cleanup() runs → abort previous', 'warn'); fx.active = false; }
+    push('effect', 'effect runs → fetch(' + fx.query + ')', 'ok');
+    fx.active = true;
+  }
+
+  function reset() {
+    fx.mounted = true;
+    fx.active = false;
+    fx.rows.length = 0;
+    push('mount', 'component mounts', 'ok');
+    cycle({ initial: true });
+    draw();
+  }
+
+  document.querySelectorAll('[data-mode]').forEach((b) => {
+    b.onclick = () => { fx.mode = b.dataset.mode; reset(); };
+  });
+
+  document.getElementById('rerender').onclick = () => cycle({});
+  document.getElementById('change').onclick = () => {
+    fx.query = fx.query === '' ? 'mu' : fx.query === 'mu' ? 'mug' : '';
+    cycle({ depChanged: true });
+    draw();
+  };
+  document.getElementById('unmount').onclick = () => {
+    if (fx.active) push('cleanup', 'cleanup() runs on unmount → abort', 'warn');
+    else push('—', 'nothing to clean up', 'warn');
+    fx.active = false;
+    fx.mounted = false;
+    push('unmount', 'component is gone', 'err');
+    draw();
+  };
+  document.getElementById('fxreset').onclick = reset;
+
+  reset();
+})();
+</script>
+</body>
+</html>

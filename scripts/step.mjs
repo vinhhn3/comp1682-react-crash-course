@@ -1,9 +1,13 @@
 #!/usr/bin/env node
 /**
  * npm run step        → list
- * npm run step 11     → s11-abort
+ * npm run step 5      → checkout s05-state AND point the concept tab at step 5.
+ *
+ * The concept page lives at http://localhost:5173/concepts/step.html and follows
+ * the git branch on its own. This script opens that tab once, then just prints.
  */
 import { execSync } from 'node:child_process';
+import fs from 'node:fs';
 
 const STEPS = {
   0: ['s00-start', 'one heading'],
@@ -25,23 +29,44 @@ const STEPS = {
   16: ['s16-router', 'the URL owns the page'],
 };
 
+const CONCEPT = 'http://localhost:5173/concepts/step.html';
+
 const arg = process.argv[2];
 
 if (!arg) {
-  console.log('');
+  console.log('\n  npm run step <n>\n');
   for (const [n, [branch, note]] of Object.entries(STEPS)) {
     console.log(`  ${n.padStart(2)}  ${branch.padEnd(16)} ${note}`);
   }
-  console.log('\n  the dev server keeps running — Vite reloads by itself.\n');
+  console.log('\n  the dev server keeps running; the concept tab follows the branch.\n');
   process.exit(0);
 }
 
-const branch = STEPS[arg] ? STEPS[arg][0] : arg;
+const entry = STEPS[arg];
+const branch = entry ? entry[0] : arg;
 
 try {
   execSync(`git checkout ${branch}`, { stdio: 'inherit' });
-  console.log(`\n  now on ${branch} — reload http://localhost:5173\n`);
 } catch {
   console.error(`\n  no branch "${branch}". Run npm run step to see the list.\n`);
   process.exit(1);
+}
+
+console.log(`\n  STEP ${String(arg).padStart(2, '0')} — ${entry ? entry[1] : branch}`);
+console.log(`  CONCEPT  ${CONCEPT}`);
+console.log('  WEB      http://localhost:5173\n');
+
+/* Open the concept tab once per checkout, and only if the dev server is up. */
+const marker = '.git/.concept-tab-opened';
+if (process.platform === 'darwin' && !fs.existsSync(marker)) {
+  let up = false;
+  try {
+    up = execSync(`curl -s -o /dev/null -w "%{http_code}" ${CONCEPT}`).toString() === '200';
+  } catch {
+    up = false;
+  }
+  if (up) {
+    execSync(`open "${CONCEPT}"`);
+    fs.writeFileSync(marker, '1');
+  }
 }
