@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Context — who owns the cart</title>
+<link rel="stylesheet" href="concepts.css" />
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="topnav">
+    <a href="index.html">Concepts</a>
+    <a href="hooks.html">Hooks</a>
+    <a href="api.html">API handling</a>
+    <a class="here" href="context.html">Context</a>
+  </nav>
+
+  <p class="kicker">Context</p>
+  <h1>Who owns the cart</h1>
+  <p class="lede">
+    Context is not “global state”. It is one specific thing: <b>one value, owned in one place,
+    read by components that are nowhere near each other.</b> In this app that value is the cart.
+  </p>
+
+  <!-- 1 ─────────────────────────────────────────────────── -->
+  <section class="sec">
+    <h2><span class="n">1</span> Before: App knows too much</h2>
+    <p class="sub">Press the two buttons. Same app, same features, different size of App.</p>
+
+    <div class="card stack">
+      <div class="btns">
+        <button class="btn on" data-app="before">before — props</button>
+        <button class="btn" data-app="after">after — context</button>
+      </div>
+
+      <pre class="code" id="app-before"><span class="file">src/App.jsx — step 13</span>const App = () =&gt; {
+  const [cart, setCart] = useState([]);
+  const [page, setPage] = useState('shop');
+
+  const addToCart = (product) =&gt; { <span class="c">/* 12 lines */</span> };
+  const total = cart.reduce(<span class="c">/* ... */</span>);
+
+  return (
+    &lt;div className="app"&gt;
+      &lt;Header <b>count={cart.length}</b> page={page} onNavigate={setPage} /&gt;
+
+      {page === 'shop'
+        ? &lt;ShopPage <b>onAdd={addToCart}</b> /&gt;
+        : &lt;CartPage <b>cart={cart} total={total}</b> /&gt;}
+    &lt;/div&gt;
+  );
+};</pre>
+
+      <pre class="code" id="app-after" style="display:none"><span class="file">src/App.jsx — step 14</span>const App = () =&gt; {
+  const [page, setPage] = useState('shop');
+
+  return (
+    &lt;<b>CartProvider</b>&gt;
+      &lt;div className="app"&gt;
+        &lt;Header page={page} onNavigate={setPage} /&gt;
+
+        {page === 'shop'
+          ? &lt;ShopPage /&gt;
+          : &lt;CartPage /&gt;}
+      &lt;/div&gt;
+    &lt;CartProvider&gt;
+  );
+};</pre>
+
+      <p class="note" id="app-note">
+        Four props exist only to move the cart around: <code>count</code>, <code>onAdd</code>,
+        <code>cart</code>, <code>total</code>. Add a fifth screen and you add a fifth prop.
+      </p>
+    </div>
+  </section>
+
+  <!-- 2 ─────────────────────────────────────────────────── -->
+  <section class="sec">
+    <h2><span class="n">2</span> After: the provider publishes, the readers ask</h2>
+    <p class="sub">Three components, one value, no wiring between them.</p>
+
+    <div class="card stack">
+      <div class="node hot">CartProvider <small>useState(cart) lives here now</small></div>
+      <p class="mono" style="margin:6px 0 2px;color:var(--accent)">value = {{ cart, addToCart, count, total }}</p>
+
+      <div class="grid3">
+        <div class="node ctx">Header <small>const {{ count }} = useCart()</small></div>
+        <div class="node ctx">ShopPage <small>const {{ addToCart }} = useCart()</small></div>
+        <div class="node ctx">CartPage <small>const {{ cart, total }} = useCart()</small></div>
+      </div>
+
+      <p style="margin:0;font-size:13.5px">
+        The provider is still <b>above</b> them in the tree. The data still flows one way. The only
+        thing that changed is that the components in between no longer carry it.
+      </p>
+    </div>
+
+    <div class="grid2" style="margin-top:16px">
+      <div class="card stack">
+        <span class="tag b">context/CartContext.jsx</span>
+        <pre class="code">export const CartProvider = ({ children }) =&gt; {
+  const [cart, setCart] = useState([]);
+
+  const addToCart = (product) =&gt; { <span class="c">/* ... */</span> };
+
+  const count = cart.reduce(<span class="c">/* ... */</span>);
+  const total = cart.reduce(<span class="c">/* ... */</span>);
+
+  return (
+    &lt;CartContext.Provider value={{ cart, addToCart, count, total }}&gt;
+      {children}
+    &lt;/CartContext.Provider&gt;
+  );
+};
+
+export const useCart = () =&gt; useContext(CartContext);</pre>
+      </div>
+
+      <div class="card stack">
+        <span class="tag b">components/Header.jsx</span>
+        <pre class="code">import { useCart } from '../context/CartContext';
+
+const Header = () =&gt; {
+  const { count } = <b>useCart()</b>;
+
+  return (
+    &lt;header&gt;
+      &lt;h1&gt;Shop&lt;/h1&gt;
+      &lt;nav&gt;
+        &lt;NavLink to="/cart"&gt;Cart ({count})&lt;/NavLink&gt;
+      &lt;/nav&gt;
+    &lt;/header&gt;
+  );
+};</pre>
+        <p style="margin:0;font-size:13px;color:var(--muted)">No props at all. That is the win.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 ─────────────────────────────────────────────────── -->
+  <section class="sec">
+    <h2><span class="n">3</span> What actually re-renders</h2>
+    <p class="sub">Press “add to cart” in each mode. Then read the caption — it is not the story you expect.</p>
+
+    <div class="card stack">
+      <div class="spread">
+        <div class="btns">
+          <button class="btn on" data-mode="context">with context</button>
+          <button class="btn" data-mode="props">with props</button>
+        </div>
+        <div class="btns">
+          <button class="btn pri" id="add">add to cart</button>
+          <span class="tag" id="count">0 re-rendered</span>
+        </div>
+      </div>
+
+      <div class="grid2" style="margin-top:8px">
+        <div class="node" id="r-app">App <small>owns page</small></div>
+        <div class="node" id="r-header">Header <small>useCart()</small></div>
+        <div class="node" id="r-shop">ShopPage <small>useCart()</small></div>
+        <div class="node" id="r-cart">CartPage <small>useCart()</small></div>
+      </div>
+
+      <p class="note" id="rtext">
+        With props, App re-renders and hands new values to all three children.
+      </p>
+    </div>
+
+    <div class="note bad" style="margin-top:16px">
+      <strong>Do not sell context as a performance tool.</strong> Every consumer still re-renders on
+      every change, and there is no selector to opt out. Here it buys <b>three fewer props</b> and an
+      App that no longer knows what a cart is. That is the honest reason to use it.
+    </div>
+  </section>
+
+  <!-- 4 ─────────────────────────────────────────────────── -->
+  <section class="sec">
+    <h2><span class="n">4</span> Use it when…</h2>
+    <div class="grid2" style="margin-top:14px">
+      <div class="card stack">
+        <span class="tag g">good fit</span>
+        <ul style="margin:0;padding-left:18px;font-size:13.5px;line-height:1.95">
+          <li>one value is read by components in different branches of the tree</li>
+          <li>the signed-in user</li>
+          <li>the cart / basket</li>
+          <li>theme, locale, currency</li>
+        </ul>
+        <p style="margin:0;font-size:13px;color:var(--muted)">Several distant readers, few writers.</p>
+      </div>
+      <div class="card stack">
+        <span class="tag r">not a fit</span>
+        <ul style="margin:0;padding-left:18px;font-size:13.5px;line-height:1.95">
+          <li>a value one page uses — that is local state</li>
+          <li>a value one child needs — that is a prop</li>
+          <li>server data — that is a hook’s job</li>
+          <li>“everything, in one big provider”</li>
+        </ul>
+        <p style="margin:0;font-size:13px;color:var(--muted)">If only one component reads it, context is overhead.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 ─────────────────────────────────────────────────── -->
+  <section class="sec">
+    <h2><span class="n">5</span> Three files, in this repo</h2>
+    <div class="grid3" style="margin-top:14px">
+      <div class="card stack">
+        <span class="tag b">1 · the owner</span>
+        <code style="font-size:12px">context/CartContext.jsx</code>
+        <p style="margin:0;font-size:13px">Holds the state, the three actions, and the derived <code>count</code> and <code>total</code>.</p>
+      </div>
+      <div class="card stack">
+        <span class="tag b">2 · the reader</span>
+        <code style="font-size:12px">components/Header.jsx</code>
+        <p style="margin:0;font-size:13px">Reads <code>count</code>. Has no props related to the cart.</p>
+      </div>
+      <div class="card stack">
+        <span class="tag b">3 · the other reader</span>
+        <code style="font-size:12px">pages/CartPage.jsx</code>
+        <p style="margin:0;font-size:13px">Reads <code>cart</code> and <code>total</code>. Same provider, different branch of the tree.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* before / after App */
+(() => {
+  const before = document.getElementById('app-before');
+  const after = document.getElementById('app-after');
+  const note = document.getElementById('app-note');
+
+  document.querySelectorAll('[data-app]').forEach((btn) => {
+    btn.onclick = () => {
+      const showBefore = btn.dataset.app === 'before';
+      before.style.display = showBefore ? '' : 'none';
+      after.style.display = showBefore ? 'none' : '';
+      document.querySelectorAll('[data-app]').forEach((b) => b.classList.toggle('on', b === btn));
+      note.innerHTML = showBefore
+        ? 'Four props exist only to move the cart around: <code>count</code>, <code>onAdd</code>, <code>cart</code>, <code>total</code>. Add a fifth screen and you add a fifth prop.'
+        : 'App is down to navigation. The cart did not disappear — it moved one level up, into the provider, and the readers ask for it.';
+    };
+  });
+})();
+
+/* re-render toggle */
+(() => {
+  const ALL = ['r-app', 'r-header', 'r-shop', 'r-cart'];
+  const PROPS = ALL;
+  const CONTEXT = ['r-header', 'r-shop', 'r-cart'];
+
+  let mode = 'context';
+  const countTag = document.getElementById('count');
+  const text = document.getElementById('rtext');
+
+  document.querySelectorAll('[data-mode]').forEach((b) => {
+    b.onclick = () => {
+      mode = b.dataset.mode;
+      document.querySelectorAll('[data-mode]').forEach((x) => x.classList.toggle('on', x === b));
+      reset();
+    };
+  });
+
+  function reset() {
+    ALL.forEach((id) => document.getElementById(id).classList.remove('hot', 'off'));
+    countTag.textContent = '0 re-rendered';
+    text.innerHTML =
+      mode === 'context'
+        ? 'With context, App does not re-render at all — the provider owns the state. Only the three consumers do.'
+        : 'With props, App re-renders and hands new values to all three children.';
+  }
+
+  document.getElementById('add').onclick = () => {
+    const hot = mode === 'context' ? CONTEXT : PROPS;
+    ALL.forEach((id) => {
+      const el = document.getElementById(id);
+      el.classList.remove('hot');
+      el.classList.toggle('off', !hot.includes(id));
+    });
+    hot.forEach((id) => document.getElementById(id).classList.add('hot'));
+    countTag.textContent = `${hot.length} re-rendered`;
+  };
+
+  reset();
+})();
+</script>
+</body>
+</html>

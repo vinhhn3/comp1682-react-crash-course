@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Step — Shop</title>
+<link rel="stylesheet" href="concepts.css" />
+</head>
+<body>
+<div class="wrap">
+
+  <div class="zones">
+    <div class="zone"><span>CODE</span><b id="z-branch">—</b></div>
+    <div class="zone"><span>WEB</span><a href="/" target="_blank">localhost:5173</a></div>
+    <div class="zone"><span>CONCEPT</span><b>this page</b></div>
+  </div>
+
+  <nav class="rail" id="rail" aria-label="steps"></nav>
+
+  <p class="kicker" id="kicker">connecting</p>
+  <h1 id="title">Waiting for the dev server</h1>
+  <p class="lede" id="line">
+    Keep this tab open. Run <code>npm run step 5</code> in the terminal and this page
+    follows the branch by itself.
+  </p>
+
+  <section class="sec" id="body" hidden>
+    <div class="card" id="diagram-card" style="margin-bottom:16px">
+      <div id="diagram"></div>
+    </div>
+
+    <div class="card" id="diff-card" style="margin-bottom:16px">
+      <div class="spread">
+        <div>
+          <h3>What changed since the last step</h3>
+          <p class="diff-stat" id="diff-stat" style="margin:4px 0 0"></p>
+          <p class="mono" id="diff-cmd" style="margin:6px 0 0;font-size:11.5px;color:var(--muted)"></p>
+        </div>
+        <button class="btn" id="diff-toggle" hidden>Hide the diff</button>
+      </div>
+      <div id="diff-body" style="margin-top:14px"></div>
+    </div>
+
+    <div class="card" id="explain-card" style="margin-bottom:16px" hidden>
+      <div class="spread" style="margin-bottom:12px">
+        <div>
+          <h3>In depth</h3>
+          <p style="margin:4px 0 0;font-size:12px;color:var(--muted)">
+            The idea, the render/effect model, the rules and a simulator — all on this page.
+          </p>
+        </div>
+        <button class="btn" id="explain-toggle">Hide</button>
+      </div>
+      <div class="explain" id="explain"></div>
+    </div>
+
+    <div class="grid2">
+      <div class="card stack">
+        <h3>In this step</h3>
+        <ul id="changed"></ul>
+      </div>
+      <div class="card stack">
+        <h3>Ask the room</h3>
+        <p id="ask" style="margin:0;font-size:13.5px"></p>
+        <a id="press" class="btn pri" target="_blank" hidden></a>
+      </div>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden;margin-top:16px">
+      <pre class="code" style="margin:0"><span class="file" id="file"></span><code id="code"></code></pre>
+    </div>
+  </section>
+
+  <p class="note" id="hint">
+    This page reads the current git branch from the dev server every second.
+    No reload, no tab juggling: the concept changes when the code does.
+  </p>
+
+</div>
+
+<script type="module">
+import { STEPS, stepNumber } from './steps.js';
+import { DIAGRAMS, FIGURES } from './diagrams.js';
+import { LESSONS } from './lessons.js';
+import { initWidgets } from './widgets.js';
+
+const $ = (id) => document.getElementById(id);
+const rail = $('rail');
+let current = null;
+let manual = false;
+
+const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+let diffFor = null;
+
+function diffHtml(raw, from, to) {
+  const files = [];
+  let file = null;
+  let hunk = null;
+  let dels = [];
+  let adds = [];
+  let oldNo = 0;
+  let newNo = 0;
+
+  const flush = () => {
+    if (!hunk) return;
+    const rows = Math.max(dels.length, adds.length);
+    for (let i = 0; i < rows; i += 1) {
+      hunk.rows.push({ left: dels[i], right: adds[i] });
+    }
+    dels = [];
+    adds = [];
+  };
+
+  for (const line of raw.split('\n')) {
+    if (line.startsWith('diff --git')) {
+      flush();
+      const match = line.match(/ b\/(.*)$/);
+      file = { path: match ? match[1] : line, note: '', hunks: [] };
+      files.push(file);
+      hunk = null;
+    } else if (!file) {
+      continue;
+    } else if (line.startsWith('new file mode')) {
+      file.note = 'new file';
+    } else if (line.startsWith('rename from ')) {
+      file.note = `renamed from ${line.slice(12)}`;
+    } else if (line.startsWith('rename to ')) {
+      file.note = `${file.note} → ${line.slice(10)}`;
+    } else if (line.startsWith('@@')) {
+      flush();
+      const range = line.match(/^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
+      oldNo = range ? Number(range[1]) : 0;
+      newNo = range ? Number(range[2]) : 0;
+      hunk = { header: line, rows: [] };
+      file.hunks.push(hunk);
+    } else if (!hunk) {
+      continue;
+    } else if (line.startsWith('-')) {
+      dels.push({ text: line.slice(1), no: oldNo });
+      oldNo += 1;
+    } else if (line.startsWith('+')) {
+      adds.push({ text: line.slice(1), no: newNo });
+      newNo += 1;
+    } else if (line.startsWith(' ')) {
+      flush();
+      const text = line.slice(1);
+      hunk.rows.push({
+        left: { text, no: oldNo },
+        right: { text, no: newNo },
+        ctx: true,
+      });
+      oldNo += 1;
+      newNo += 1;
+    }
+  }
+  flush();
+
+  const cell = (side, cls) =>
+    side
+      ? `<div class="diff2-cell ${cls}"><span class="ln">${side.no}</span><span class="tx">${esc(side.text) || '&#8203;'}</span></div>`
+      : '<div class="diff2-cell empty"></div>';
+
+  let html = `<div class="diff2">
+    <div class="diff2-head"><span>before · ${esc(from)}</span><span>after · ${esc(to)}</span></div>`;
+
+  for (const f of files) {
+    html += `<div class="diff2-file">${esc(f.path)}${f.note ? ` <em>${esc(f.note)}</em>` : ''}</div>`;
+
+    for (const h of f.hunks) {
+      html += `<div class="diff2-hunk">${esc(h.header)}</div>`;
+
+      for (const row of h.rows) {
+        html += `<div class="diff2-row">${cell(row.left, row.ctx ? 'ctx' : 'del')}${cell(
+          row.right,
+          row.ctx ? 'ctx' : 'add',
+        )}</div>`;
+      }
+    }
+  }
+
+  return `${html}</div>`;
+}
+
+async function loadDiff(n) {
+  if (diffFor === n) return;
+  diffFor = n;
+
+  const body = $('diff-body');
+  const toggle = $('diff-toggle');
+  const stat = $('diff-stat');
+  const cmd = $('diff-cmd');
+
+  body.hidden = true;
+  body.innerHTML = '';
+  toggle.hidden = true;
+  toggle.textContent = 'Hide the diff';
+  stat.textContent = 'loading…';
+  cmd.textContent = '';
+
+  try {
+    const data = await fetch(`/__diff?step=${n}`, { cache: 'no-store' }).then((r) => r.json());
+
+    if (!data.from) {
+      stat.textContent = 'Starting point — there is nothing before this.';
+      return;
+    }
+
+    stat.textContent = (data.stat.split('\n').pop() || '').trim();
+    cmd.textContent = `git diff ${data.from} ${data.to} -- src`;
+
+    body.innerHTML = diffHtml(data.raw, data.from, data.to);
+    body.hidden = false;
+    toggle.hidden = false;
+    toggle.textContent = 'Hide the diff';
+    toggle.onclick = () => {
+      body.hidden = !body.hidden;
+      toggle.textContent = body.hidden ? 'Show the diff' : 'Hide the diff';
+    };
+  } catch {
+    stat.textContent = 'diff unavailable — is the dev server running?';
+  }
+}
+
+
+/* ── inline lesson blocks ─────────────────────────────────────────── */
+
+function blockHtml(block, n, index) {
+  switch (block.type) {
+    case 'p':
+      return `<p class="ex-p">${block.html}</p>`;
+
+    case 'h':
+      return `<h4 class="ex-h">${esc(block.text)}</h4>`;
+
+    case 'ul':
+      return `<ul class="ex-ul">${block.items.map((item) => `<li>${item}</li>`).join('')}</ul>`;
+
+    case 'note':
+      return `<div class="note ${block.tone || ''}" style="margin:12px 0">${block.html}</div>`;
+
+    case 'table':
+      return `<div style="overflow:auto;margin:12px 0"><table>
+        <tr>${block.head.map((h) => `<th>${h}</th>`).join('')}</tr>
+        ${block.rows.map((row) => `<tr>${row.map((cell) => `<td>${cell}</td>`).join('')}</tr>`).join('')}
+      </table></div>`;
+
+    case 'compare':
+      return `<div class="dg-split" style="margin:12px 0">
+        <div class="dg-panel"><span class="dg-cap">${esc(block.left.label)}</span><pre class="dg-code">${esc(block.left.text)}</pre></div>
+        <div class="dg-panel"><span class="dg-cap">${esc(block.right.label)}</span><pre class="dg-code">${esc(block.right.text)}</pre></div>
+      </div>`;
+
+    case 'flow':
+      return `<div class="ex-flow" style="margin:12px 0">${block.hops
+        .map(
+          (hop, i) => `${i > 0 ? '<div class="ex-arrow"></div>' : ''}
+          <div class="ex-hop">
+            <b>${esc(hop.at)}</b>
+            <span><code>${esc(hop.data)}</code>${hop.note ? `<small>${esc(hop.note)}</small>` : ''}</span>
+          </div>`,
+        )
+        .join('')}</div>${block.note ? `<p class="dg-note" style="text-align:left">${block.note}</p>` : ''}`;
+
+    case 'figure': {
+      const draw = FIGURES[block.key];
+      return draw ? `<div class="ex-figure" style="margin:14px 0">${draw(block.variant)}</div>` : '';
+    }
+
+    case 'widget':
+      return `<div class="widget" data-widget="${esc(block.widget)}"${block.scenario ? ` data-scenario="${esc(block.scenario)}"` : ''}${block.auto ? ' data-auto="true"' : ''}${block.note ? ` data-note="${esc(block.note)}"` : ''} style="margin:14px 0"></div>`;
+
+    case 'tree':
+      return `<div class="ex-tree" style="margin:12px 0">${block.rows
+        .map(([path, role]) => `<div class="ex-tree-row"><b>${esc(path)}</b><span>${role}</span></div>`)
+        .join('')}</div>`;
+
+    case 'code':
+      return `<pre class="code" style="margin:12px 0"><span class="file">${esc(block.file)}</span>${esc(block.text)}</pre>`;
+
+    default:
+      return '';
+  }
+}
+
+function renderLesson(n) {
+  const card = $('explain-card');
+  const body = $('explain');
+  const blocks = LESSONS[n];
+
+  if (!blocks?.length) {
+    card.hidden = true;
+    body.innerHTML = '';
+    return;
+  }
+
+  card.hidden = false;
+  body.hidden = false;
+  $('explain-toggle').textContent = 'Hide';
+  body.innerHTML = blocks.map((block, index) => blockHtml(block, n, index)).join('');
+  initWidgets(body);
+}
+
+$('explain-toggle').onclick = () => {
+  const body = $('explain');
+  body.hidden = !body.hidden;
+  $('explain-toggle').textContent = body.hidden ? 'Show' : 'Hide';
+};
+
+/* ── rail ─────────────────────────────────────────────────────────── */
+
+/* the rail: 00 … 16, click to preview any step without the terminal */
+for (let i = 0; i <= 16; i += 1) {
+  const a = document.createElement('a');
+  a.href = `?step=${i}`;
+  a.textContent = String(i).padStart(2, '0');
+  a.dataset.step = i;
+  a.onclick = (event) => {
+    event.preventDefault();
+    manual = true;
+    history.replaceState({}, '', `?step=${i}`);
+    render(i);
+  };
+  rail.append(a);
+}
+
+function render(n) {
+  const step = STEPS[n];
+
+  document.querySelectorAll('.rail a').forEach((a) => {
+    a.classList.toggle('on', Number(a.dataset.step) === Number(n));
+  });
+
+  if (!step) {
+    $('kicker').textContent = 'no concept';
+    $('title').textContent = `No concept for step ${n}`;
+    $('line').textContent = 'Switch to a step branch, or pick one above.';
+    $('body').hidden = true;
+    return;
+  }
+
+  $('kicker').textContent = `step ${String(n).padStart(2, '0')} · ${step.branch}`;
+  $('title').textContent = step.title;
+  $('line').textContent = step.line;
+  $('z-branch').textContent = step.branch;
+
+  $('changed').innerHTML = step.changed.map((item) => `<li>${item}</li>`).join('');
+  $('ask').textContent = step.ask;
+
+  const press = $('press');
+  if (step.press) {
+    press.hidden = false;
+    press.href = step.press.href;
+    press.textContent = step.press.label;
+  } else {
+    press.hidden = true;
+  }
+
+  $('file').textContent = step.code.file;
+  $('code').textContent = step.code.text;
+
+  const diagram = DIAGRAMS[n] ? DIAGRAMS[n]() : '';
+  $('diagram').innerHTML = diagram;
+  $('diagram-card').hidden = !diagram;
+
+  $('body').hidden = false;
+  $('hint').innerHTML =
+    'Command for this step: <code>npm run step ' + n + '</code>. ' +
+    'The app is at <a href="/" target="_blank">localhost:5173</a>.';
+
+  $('diff-card').hidden = false;
+  renderLesson(n);
+  loadDiff(n);
+}
+
+/* manual preview via ?step=5 */
+const requested = new URLSearchParams(location.search).get('step');
+if (requested !== null) {
+  manual = true;
+  render(Number(requested));
+}
+
+/* follow the branch */
+async function tick() {
+  if (manual) return;
+  try {
+    const res = await fetch('/__step', { cache: 'no-store' });
+    const { branch } = await res.json();
+    if (branch !== current) {
+      current = branch;
+      const n = branch === 'main' ? 16 : stepNumber(branch);
+      render(n);
+    }
+  } catch {
+    if (current !== 'offline') {
+      current = 'offline';
+      $('kicker').textContent = 'dev server not running';
+      $('title').textContent = 'Start the dev server';
+      $('line').innerHTML =
+        'Run <code>npm run dev</code>. Then <code>npm run step 5</code> and this page follows.';
+      $('body').hidden = true;
+      $('hint').textContent = 'Without the server you can still pick a step above.';
+    }
+  }
+}
+
+tick();
+setInterval(tick, 1000);
+</script>
+</body>
+</html>
