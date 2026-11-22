@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Header from './Header';
 import ProductCard from './ProductCard';
 
 const products = [
@@ -28,11 +29,7 @@ const App = () => {
 
   return (
     <div className="app">
-      <h1>Shop</h1>
-
-      <p className="count">
-        Cart: {cart.length} lines · ${total}
-      </p>
+      <Header count={cart.length} />
 
       {products.map((product) => (
         <ProductCard
@@ -50,6 +47,7 @@ const App = () => {
               {item.qty} × {item.title} — ${item.price * item.qty}
             </p>
           ))}
+          <p className="count">Total: ${total}</p>
         </div>
       )}
     </div>
