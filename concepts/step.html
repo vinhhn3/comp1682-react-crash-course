@@ -25,6 +25,10 @@
   </p>
 
   <section class="sec" id="body" hidden>
+    <div class="card" id="diagram-card" style="margin-bottom:16px">
+      <div id="diagram"></div>
+    </div>
+
     <div class="grid2">
       <div class="card stack">
         <h3>In this step</h3>
@@ -51,6 +55,7 @@
 
 <script type="module">
 import { STEPS, stepNumber } from './steps.js';
+import { DIAGRAMS } from './diagrams.js';
 
 const $ = (id) => document.getElementById(id);
 const rail = $('rail');
@@ -106,6 +111,10 @@ function render(n) {
 
   $('file').textContent = step.code.file;
   $('code').textContent = step.code.text;
+
+  const diagram = DIAGRAMS[n] ? DIAGRAMS[n]() : '';
+  $('diagram').innerHTML = diagram;
+  $('diagram-card').hidden = !diagram;
 
   $('body').hidden = false;
   $('hint').innerHTML =

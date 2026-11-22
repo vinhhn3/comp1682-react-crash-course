@@ -8,7 +8,7 @@ The course is three zones, and one command moves all of them.
 | **WEB** | `http://localhost:5173` | the running app |
 | **CONCEPT** | `http://localhost:5173/concepts/step.html` | the explanation for the current step |
 
-![The concept tab, following step 5](walkthrough/step-page.png)
+![The concept tab, following step 5](walkthrough/step-05.png)
 
 The concept tab reads the git branch from the dev server every second. So
 `npm run step 5` changes the code **and** the explanation. No reload, no tab juggling.
