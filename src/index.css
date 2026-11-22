@@ -77,3 +77,18 @@ button:hover {
   display: flex;
   gap: 8px;
 }
+
+.input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #dfe3ea;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  margin-bottom: 16px;
+}
+
+.input:focus {
+  outline: 2px solid #1f5fd6;
+  outline-offset: 1px;
+}
