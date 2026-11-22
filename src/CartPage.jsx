@@ -1,4 +1,8 @@
-const CartPage = ({ cart, total }) => {
+import { useCart } from './CartContext';
+
+const CartPage = () => {
+  const { cart, total } = useCart();
+
   if (cart.length === 0) {
     return <p>Your cart is empty.</p>;
   }

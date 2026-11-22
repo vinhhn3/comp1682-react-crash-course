@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import ProductCard from './ProductCard';
 import { useProducts } from './useProducts';
+import { useCart } from './CartContext';
 
-const ShopPage = ({ onAdd }) => {
+const ShopPage = () => {
   const [query, setQuery] = useState('');
   const { products, loading, error } = useProducts(query);
+  const { addToCart } = useCart();
 
   if (loading) {
     return <p>Loading...</p>;
@@ -27,7 +29,7 @@ const ShopPage = ({ onAdd }) => {
         <ProductCard
           key={product.id}
           product={product}
-          onAdd={() => onAdd(product)}
+          onAdd={() => addToCart(product)}
         />
       ))}
     </>
