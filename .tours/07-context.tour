@@ -1,0 +1,42 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/codetour/main/schemas/tour.schema.json",
+  "title": "07 — context, split in two",
+  "description": "Behaviour in a hook, delivery in a provider, readers get no props.",
+  "steps": [
+    {
+      "file": "src/hooks/useCart.js",
+      "line": 9,
+      "description": "The behaviour. State, actions, derived totals. No JSX in this file, which is why it can be tested on its own."
+    },
+    {
+      "file": "src/hooks/useCart.js",
+      "line": 42,
+      "description": "One catch for every action. A failed POST puts the cart error in one place instead of five components."
+    },
+    {
+      "file": "src/hooks/useCart.js",
+      "line": 70,
+      "description": "count and total are computed from items on every call. If you ever add setTotal, you have created a second source of truth."
+    },
+    {
+      "file": "src/context/CartContext.jsx",
+      "line": 10,
+      "description": "The provider does one thing: publish. Fifteen lines, on purpose. If this file grows, logic is leaking out of the hook."
+    },
+    {
+      "file": "src/context/CartContext.jsx",
+      "line": 24,
+      "description": "Throwing here means a missing provider fails at the consumer with a useful message, not three files away with a null."
+    },
+    {
+      "file": "src/components/cart/CartBadge.jsx",
+      "line": 4,
+      "description": "No props. This component used to receive count through App → AppLayout → Header. Now it asks for it."
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 16,
+      "description": "Navigation is still useState and still props. Context was worth it for the cart (many distant readers) and would not be worth it for one value two components share."
+    }
+  ]
+}

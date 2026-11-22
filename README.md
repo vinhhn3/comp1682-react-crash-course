@@ -56,18 +56,20 @@ what to look at**.
 
 ## The 180-minute run sheet
 
-| Time | Block | Branch |
+| Time | Block | Branch / page |
 |---|---|---|
-| 0:00–0:12 | Mental model, the layer map | `course-map.html` |
-| 0:12–0:15 | Repo tour | `00-start` |
-| 0:15–0:40 | Components, props, lists, keys | `01` → `02` |
-| 0:40–1:00 | State, events, re-renders | `02` |
-| 1:00–1:10 | **Break** | |
-| 1:10–1:30 | Forms, lifting state, derived state | `03` |
-| 1:30–2:05 | Effects + API: the mess, then the fix | `04` → `05` → `06` |
-| 2:05–2:35 | Refactor: layers, imports, dataflow | diff `04 05 06` |
-| 2:35–2:50 | Router + Context | `07` → `08` |
-| 2:50–3:00 | Decision-tree quiz, checklist | `HANDOUT.md` |
+| 0:00–0:10 | Mental model, the layer map | `course-map.html` |
+| 0:10–0:15 | Repo tour | `00-start` |
+| 0:15–0:35 | Components, props, lists, keys | `01` |
+| 0:35–0:55 | State, events, snapshots | `02` + `concepts/hooks.html` §1 |
+| 0:55–1:05 | Forms, lifting state, derived state | `03` |
+| 1:05–1:15 | **Break** | |
+| 1:15–1:30 | The messy fetch, the request race | `04` + `concepts/api.html` §3 |
+| 1:30–1:45 | Services, DTO → model, error states | `05` + `concepts/api.html` §4–5 |
+| 1:45–2:05 | The hook, cleanup, abort | `06` + `concepts/hooks.html` §2–3 |
+| 2:05–2:30 | The refactor, as a diff | diff `04 05 06` |
+| 2:30–2:55 | Context: drill, skip, re-render | `07` + `concepts/context.html` |
+| 2:55–3:00 | Router, close | `08` |
 
 Full script, demo beats and fallbacks: `docs/run-sheet.md`.
 
@@ -76,6 +78,7 @@ Full script, demo beats and fallbacks: `docs/run-sheet.md`.
 ## Files worth opening first
 
 - `src/` — the final architecture (`08-router`): `pages/`, `components/`, `hooks/`, `context/`, `services/`, `lib/`, `config/`, `types/`, `router/`
+- `concepts/` — **three interactive pages** for the parts students get stuck on: hooks, API handling, context. Static HTML, no build, no server; open them in any browser.
 - `course-map.html` — the four diagrams you keep coming back to
 - `HANDOUT.md` — the student take-home: rules, both dataflow chains, quiz
 - `docs/run-sheet.md` — minute-by-minute teaching notes
@@ -95,9 +98,28 @@ Full script, demo beats and fallbacks: `docs/run-sheet.md`.
 
 ---
 
+## Where students get stuck, and what to open
+
+Three interactive pages in `concepts/`. They are the visual aid — there is no deck.
+
+| Stuck on | Open | What to press |
+|---|---|---|
+| "why did two `setCount` calls only add one?" | `concepts/hooks.html` §1 | **…twice**, then the functional version |
+| "when does `useEffect` run?" | `concepts/hooks.html` §2 | switch `[]` / `[query]` / no array, then re-render, change query, unmount |
+| "why does the search show the wrong results?" | `concepts/api.html` §3 | **Run the race**, then **Run with abort** |
+| "what does the server actually send?" | `concepts/api.html` §4 | the DTO → model side-by-side |
+| "what is a 500 supposed to look like?" | `concepts/api.html` §2 | 200 / 500 / offline |
+| "why not just props?" | `concepts/context.html` §1 | **Send the value down** |
+| "what re-renders when the cart changes?" | `concepts/context.html` §3 | **add to cart** in both modes |
+
+`concepts/index.html` is the hub. Everything is static HTML — no dev server needed,
+so it still works if the build breaks in front of the room.
+
+---
+
 ## Is this repo any good for a different audience?
 
-Swap `src/services/mockApi` for a real backend and it is a normal small shop.
-The steps are additive, so any branch is a valid starting point. The one thing
-that does not survive: teaching `04` as "the right way" — it is deliberately
-wrong, and the README on that branch says so.
+Swap `mock/server.js` for a real backend (`VITE_USE_MOCK=false`) and it is a normal
+small shop. The steps are additive, so any branch is a valid starting point. The one
+thing that does not survive: teaching `04` as "the right way" — it is deliberately
+wrong, and the step notes say so.

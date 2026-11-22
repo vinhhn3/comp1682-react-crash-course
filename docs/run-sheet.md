@@ -1,222 +1,252 @@
 # Run sheet — 180 minutes
 
-Assumes: projected laptop, one browser with three tabs (`localhost:5173`,
-`course-map.html`, `HANDOUT.md`), VS Code with the repo open, terminals ready.
+Assumes: projected laptop, one browser with four tabs (`localhost:5173`,
+`concepts/index.html`, `course-map.html`, `HANDOUT.md`), VS Code with the repo
+open. Two terminals: `T1` = `npm run dev`, `T2` = `git`.
 
-Two terminals:
-- `T1` — `npm run dev`
-- `T2` — `git` for checkouts and diffs
-
-**Global rule:** never type more than eight lines. Check out the branch, type the delta.
-
----
-
-## 0:00 – 0:12 · Why React, and the map
-
-**Screen:** `course-map.html`, section ① only.
-
-Say, in this order:
-
-1. "You already know how to build a page. React is a way to build a page that *changes*."
-2. "The whole mental model is one line: **the screen is a function of state**. You never say 'add a row'. You say 'the state changed' and React works out the row."
-3. "Which means the interesting question is never 'which element', it is **where does the state live and who may touch it**."
-4. Point at the layer map: "For three hours, every file we open will be one of these five boxes. At the end you will be able to place any file in under five seconds."
-
-**Do not** demo anything yet. No code. This is the only talking-head section.
-
-**Fallback:** if the room is cold, ask "who has used React?" and "who has used Vue?" — then say "same idea, different spelling."
+**Global rules**
+- Never type more than eight lines. Check out the branch, type the delta.
+- Show the diff, not the file.
+- Name the layer out loud every time you open a file.
 
 ---
 
-## 0:12 – 0:15 · Repo tour
+## 0:00 – 0:10 · Why React, and the map
+
+**Screen:** `course-map.html`, section ①.
+
+1. "You already know how to build a page. React is how you build a page that *changes*."
+2. "One line: **the screen is a function of state**. You never say 'add a row'. You change state and React works out the row."
+3. "So the interesting question is never the element. It is **where the state lives and who may touch it**."
+4. Point at the five boxes: "Every file we open today is one of these. By 3:00 you will place any file in five seconds."
+
+No code yet. This is the only talking-head section.
+
+---
+
+## 0:10 – 0:15 · Repo tour
 
 ```bash
-git checkout 00-start
-npm run dev
+git checkout 00-start && npm run dev
 ```
 
-Show: `src/main.jsx` (3 lines), `index.html` (one div), `src/styles.css` (tokens).
-Say: "The HTML has one empty div. Everything you will see is a tree we put inside it."
+`src/main.jsx` (three lines), `index.html` (one div), `src/styles.css` (tokens).
+"One empty div. Everything you see today is a tree we put inside it."
 
 ---
 
-## 0:15 – 0:40 · Components, props, lists, keys
+## 0:15 – 0:35 · Components, props, lists, keys
 
 ```bash
 git checkout 01-static-ui
 ```
 
-**Beat 1 — the component is a function that returns markup.** Open `ProductCard.jsx`.
-Say: "It takes props, it returns JSX. That's it. No class, no template language."
+**Beat 1** — `ProductCard`: props in, JSX out. No class, no template language.
+**Beat 2** — compose: `<ProductList products={PRODUCTS} />`. Data goes down. It never comes back up.
+**Beat 3** — `map` + `key`. "Lists are not a React feature. They are `map` plus identity."
 
-**Beat 2 — compose.** Open `ProductsPage.jsx`. Point at `<ProductList products={PRODUCTS} />`.
-Say: "Data goes down through props. It never comes back up. If you need something back, you pass a function down."
+**Key demo (30 s, no commit).** Change `key={p.id}` to `key={i}`, reorder two
+products, watch DevTools highlight the wrong cards. Undo with `git checkout -- src`.
 
-**Beat 3 — `map`.** Open `ProductList.jsx`. Highlight the `map`.
-Say: "Lists in React are not a feature. They are `map` plus a `key`."
-
-**Demo the key bug (30 s, no commit).** In `ProductList`, change `key={p.id}` to `key={i}`,
-open React DevTools, highlight updates, then reorder `PRODUCTS` in the file (move the first
-product to the end). Watch React keep the old DOM nodes.
-Say: "Keys are identity. The index is not identity — it is position, and position changes."
-**Undo the edit immediately.** `git checkout -- src`
-
-**Checkpoint question:** "Why doesn't `ProductCard` need to know where the products came from?"
-Answer: separation of concerns — but do not use that phrase. Say: "because it was handed them."
+**Ask:** "How would the card tell the page that Add was clicked?" → props can carry functions. That is 02.
 
 ---
 
-## 0:40 – 1:00 · State and events
+## 0:35 – 0:55 · State and events
 
 ```bash
 git checkout 02-state
 ```
 
-**Beat 1.** Open `ProductsPage.jsx`. Point at `const [cart, setCart] = useState([])`.
-Say: "State is a variable that, when it changes, redraws the component. That is the whole trick."
+**Beat 1** — `useState`. "A variable that redraws the component when it changes."
 
-**Beat 2 — do not mutate.** Show the add handler using `[...cart, product]`, then change it
-live to `cart.push(product)` and show nothing happens. Undo.
-Say: "React compares identity, not contents. New array or nothing happens."
+**Beat 2 — the snapshot.** Open `concepts/hooks.html` §1 and press **“…twice”**.
+It adds **one**, not two. Say: *"Both lines read the same snapshot. A snapshot is
+not a live variable."* Then press the functional version: +2.
 
-**Beat 3 — updates are asynchronous.** Add `console.log(cart.length)` right after `setCart`
-and click twice. It logs the *old* length.
-Say: "You are reading this render's state. The next render gets the new one."
+**Beat 3 — never mutate.** Change `[...current, item]` to `current.push(item)` and click. Nothing happens. Undo.
+"React compares the reference, not the contents."
 
-**Beat 4 — the pain.** Point at the cart count: it is rendered *inside* `ProductsPage`.
-Say: "The header can't see it. The cart page can't see it. That is today's problem."
+**Beat 4 — the pain.** The cart count is inside `ProductsPage`. The header can't see it.
+"Remember this. 1:10 fixes it. 2:30 fixes it properly."
 
 ---
 
-## 1:00 – 1:10 · Break
-
-Leave `07-context` checked out? No. Leave `02-state` running so people can poke.
-
----
-
-## 1:10 – 1:30 · Forms, lifting state, derived state
+## 0:55 – 1:05 · Forms, lifting, derived state
 
 ```bash
 git checkout 03-forms-lifting
 ```
 
-**Beat 1 — controlled input.** `SearchBar.jsx`. Type in it, then delete `value={value}` and
-show the input still types but the list doesn't filter. Undo.
-Say: "Two-way binding in React is one line: value in, onChange out."
+**Controlled input (30 s).** `SearchBar`. Delete `value={value}`: it still types, the list stops filtering. Undo.
 
-**Beat 2 — lifting.** Open `App.jsx`. The cart now lives here.
-Say: "Two screens need the same data. So it moves to the nearest common parent. That's it. That's 'lifting state up'."
+**Lifting.** `App.jsx` now owns `cart`. "Two screens need it, so it moves to the nearest common parent. That is all lifting state up is."
 
-**Beat 3 — derived state.** Open `CartSummary.jsx`. Point at `total`.
-Say: "We do not store the total. We compute it from the lines. If you store both, you have two truths and one of them will be wrong."
+**Derived.** `CartSummary`. "We do not store the total. We compute it. Store both and one of them will be wrong."
 
-**Beat 4 — the prop-drilling pain.** Follow one prop: `App → AppLayout → Header → CartBadge`.
-Say: "Four files to move one number. Remember this. We fix it at 2:35."
+**Prop drilling.** Follow `count`: `App → AppLayout → Header`. "Three files for one number."
 
 ---
 
-## 1:30 – 2:05 · Effects and the API — the mess, then the fix
+## 1:05 – 1:15 · Break
 
-### 1:30 – 1:45 · The mess
+Leave `02-state` or `03` running so people can poke.
+
+---
+
+## 1:15 – 1:30 · The mess, and the race
 
 ```bash
 git checkout 04-fetch-in-component
 ```
 
-Open `ProductsPage.jsx`. Let them read it. It is 40 lines of fetch, three `useState`, a
-hardcoded URL, and a comment that says this is wrong.
+Let them read `ProductsPage`. It is 40 lines of fetch, three `useState`, a hardcoded
+endpoint, and a comment that says this is wrong.
 
-Say: "This works. It is also the file you will regret in three months. Let's prove it."
+> "This works. It is also the file you will regret in three months."
 
-**Demo 1 — the race.** `?chaos=slow=1`, type `mu` fast, then `g`.
-The results for `mu` arrive after the results for `mug`.
-Say: "Two requests, no ordering. The last one to arrive wins, and it isn't the one you asked for last."
+**Race demo.** `concepts/api.html` §3, press **Run the race**: `m` is slow, `mu` is
+fast, the stale answer lands last and wins. Then press **Run with abort**.
+Say: *"Nothing crashed. This is the bug that ships."*
 
-**Demo 2 — duplication.** `grep -rn "localhost:3001" src` → three hits.
-Say: "Change the API and you change three files. Miss one and it fails at 2am."
+**Now reproduce it in the app.** Go back to the browser: `/?chaos=slow=2`, type `mu`
+fast. Same wrong list. Say: "same bug, your code."
 
-### 1:45 – 2:05 · The fix, layer by layer
+**Duplication.** `grep -rn "products?q" src` → one hit. "After the cart page, the
+detail page, the admin page?" Then `grep -rn "setLoading" src`.
+
+---
+
+## 1:30 – 1:45 · Services, and why failures are states
 
 ```bash
 git checkout 05-http-service
 ```
 
-Open `services/http.js`. Walk it top to bottom:
-- base URL from `config/env.js`
-- chaos block — demo `?chaos=fail` and `?chaos=offline` **now**, on the list page
-- mock switch — "this is the only line that knows a backend exists"
-- `HttpError`
+Open `services/http.js` and walk it: base URL, `HttpError`, chaos, mock switch.
+Then `productService.js`, then `types/product.js`.
 
-Then `services/productService.js` (three lines) and `types/product.js` (`price_cents → price`).
-Say: "The component asks for products. It does not know what a status code is."
+**Kill it with a query param.** In the app:
 
-Then:
+| URL | Say |
+|---|---|
+| `/?chaos=slow=2` | "loading is a state, not a moment" |
+| `/?chaos=fail` | "the service threw, the page caught" |
+| `/?chaos=offline` | "different failure, different words" |
+
+Then `concepts/api.html` §4: `price_cents: 2400` → `price: 24`. "The component
+never sees server words. When the backend changes, one file changes."
+
+**The diff.** `git diff 04 05 -- src/pages/ProductsPage.jsx` — two lines out, one in.
+
+---
+
+## 1:45 – 2:05 · The hook, and the one-line fix
+
+`concepts/hooks.html` §2 first, while the app is untouched.
+
+- Pick `[]`, press "re-render", "type in search", "unmount". The log is the only truth.
+- Pick `[query]`, press "type in search". Cleanup runs *before* the next effect.
+- Say: *"That ordering is the whole fix. Cleanup, then effect."*
+
 ```bash
 git checkout 06-custom-hook
 ```
 
-Open `hooks/useProducts.js`. Point at the cleanup: `controller.abort()`.
-Re-run the race demo. It is gone.
-Say: "One line. The previous request is cancelled before it can be wrong."
+Open `hooks/useProducts.js`. Point at `return () => controller.abort();`.
 
-Open `ProductsPage.jsx` — now four lines.
-Say: "Same behaviour. Different address."
+**Re-run the race.** `/?chaos=slow=2`, type `mu`. It is gone. Network tab shows the
+first request `(canceled)`.
 
-**DevPanel:** add `?debug=1`, click add-to-cart, point at the trace.
+**StrictMode.** Two requests on mount. "React mounts twice in dev to catch missing
+cleanups. Your abort makes the first harmless. That was the point."
+
+**`ProductsPage`** is now four lines of data logic. "Same behaviour. Different address."
+
+**DevPanel.** `?debug=1`, click Add:
+
+```
+state   App.addToCart   p-12
+```
+
+"At 2:30 those labels become layers."
 
 ---
 
-## 2:05 – 2:35 · The refactor, as a diff
+## 2:05 – 2:30 · The refactor, as a diff
 
-Do **not** re-open files. Show diffs.
+Do not re-open files. Show diffs.
 
 ```bash
 git diff 04 05 -- src/pages/ProductsPage.jsx
-```
-
-Say: "Red is detail moving down a layer. Nothing else changed."
-
-```bash
 git diff 05 06 --stat
 git diff 06 07 -- src/App.jsx
 ```
 
-Then put `course-map.html` section ⑤ on screen for 60 seconds. Read the matrix out loud,
-one row at a time. Ask the room to name the forbidden cell that matters most.
+Then `course-map.html` §⑤. Read the matrix one row at a time. Ask the room to name
+the forbidden cell that matters most (answer: a component importing `services/`).
 
-**The ten-second exercise:** call out a file, room shouts the layer.
-`formatCurrency` … `http.js` … `CartBadge` … `useProducts` … `CartProvider` … `env.js`.
+**Ten-second quiz.** Call a file, room shouts the layer:
+`formatCurrency` → `lib` · `http.js` → `services` · `CartBadge` → `components` ·
+`useProducts` → `hooks` · `CartProvider` → `context` · `env.js` → `config`.
+
+Say: *"The most valuable thing on the screen is not the code. It is the diff. Code
+tells you what a thing is; a diff tells you why it exists."*
 
 ---
 
-## 2:35 – 2:50 · Router and context
+## 2:30 – 2:55 · Context — 25 minutes, because this is where people get lost
+
+**Step 1 (3 min) — feel it.** `concepts/context.html` §1, press **Send the value
+down**. `AppLayout` and `Header` light up even though they never read the cart.
+Point at the signatures: `function Header({ cart })` where `cart` is unused.
+
+**Step 2 (3 min) — skip it.** Same page §2. The middle goes dim. "The value still
+comes from above. You made the lookup skip the middle, not the data global."
+
+**Step 3 (5 min) — the part they guess wrong.** §3, press **add to cart** in
+"with context": **2 re-rendered**. Switch to "with props": **4 re-rendered**.
+Ask them to predict before you click. Then say: *"Context has no selector. Every
+consumer re-renders. That is why it is not for everything."*
 
 ```bash
 git checkout 07-context
 ```
 
-`git diff 06 07 --stat` → the prop chain disappears.
-Open `CartContext.jsx` (provider + `useCart`), then `Header.jsx` — no cart props.
-Say: "Context is not global state because it's convenient. It's for state that many unrelated components need. Everything else should still be props."
+**Step 4 (8 min) — the code.** `hooks/useCart.js` (behaviour), then
+`context/CartContext.jsx` (delivery, ~15 lines). Then `Header` — no cart props.
+Then `App.jsx`: navigation is *still* props. "Context was worth it for the cart.
+It would not be worth it for `page`."
+
+**Step 5 (3 min) — break it.** Remove `<CartProvider>` from `App`. Reload. Read the
+error out loud: *useCart must be used inside CartProvider*. Put it back.
+"Failing loudly is a feature."
+
+**Step 6 (3 min) — the trace.** `?debug=1`, add to cart: four layers in one panel.
+
+```bash
+git diff 06 07 --stat
+```
+
+---
+
+## 2:55 – 3:00 · Router, and close
 
 ```bash
 git checkout 08-router
 ```
 
-Show the URL bar: `/`, `/products/p2`, `/cart`. Back button works.
-Open `config/routes.js` and `pages/ProductDetailPage.jsx`.
-Say: "The page is chosen by the URL, not by a `useState` in `App` — which is what we were doing an hour ago."
+Click a product. Show `/products/p4`. Back button. Refresh — still works.
+`git diff 07 08 -- src/App.jsx`: a `useState`, a ternary and a prop disappeared.
+"Page state belongs in the URL. That is it."
 
----
+**Close (90 s).**
+1. `HANDOUT.md` on screen, read the layer map once more.
+2. Three questions from the quiz, hands up.
+3. "Every file you write next term belongs in one of five boxes. If you cannot place it, the design is wrong — not you."
+4. Leave them: `git branch`.
 
-## 2:50 – 3:00 · Close
-
-1. `HANDOUT.md` on screen. Read the layer map out loud one last time.
-2. Quiz: ask three of the ten questions, hands up.
-3. "Every file you write next term belongs in one of five boxes. If you can't place it, the design is wrong — not you."
-4. Leave them: `git branch` and the eight branch names.
-
-**If you have 60 seconds left,** say this: "The most valuable thing on this screen is the diff, not the code. Code tells you what a thing is. A diff tells you why it exists."
+**If 60 seconds left:** "The most valuable thing you saw today was a diff. Code tells you what a thing is. A diff tells you why it exists."
 
 ---
 
@@ -224,10 +254,11 @@ Say: "The page is chosen by the URL, not by a `useState` in `App` — which is w
 
 | Failure | Do this |
 |---|---|
-| `npm install` fails / no network | Repo still works if `node_modules` was pre-installed. Otherwise demo from a recorded run. |
-| Dev server dies | `Ctrl-C`, `npm run dev`, keep talking. Nothing in this course needs a fast restart. |
-| No internet for fonts | None used. Everything is system fonts. |
-| Student is lost | Point at their branch name, not their screen. "You're on 04. That's supposed to be messy." |
-| You are 10 min behind | Cut the index-key demo and the `grep` demo. Never cut 04 → 06. |
-| You are 20 min behind | Make router a demo (2 min) and move context to a handout reference. The refactor block is the course. |
-| You are ahead | Add the `key` bug, the `cart.push` bug, and the StrictMode double-fetch question. |
+| No network for `npm install` | Pre-install before the session. Nothing else needs the network — the mock server is local. |
+| Dev server dies | `Ctrl-C`, `npm run dev`. Keep talking. |
+| A concept page does not open | They are static files; open them straight from Finder. No server required. |
+| Student is lost | Point at their branch name. "You are on 04. That is supposed to be messy." |
+| 10 min behind | Cut the `grep` demo and the router close. Never cut 04 → 06. |
+| 20 min behind | Make router a 2-minute demo, move context §5 to the handout. The refactor is the course. |
+| Ahead of time | Add the `cart.push` bug, the index-key bug, and the StrictMode question. |
+| Context is not landing | Stop at §1–2 of `context.html`, then show `07` and say "read §5 in the handout". Do not try to do the re-render counter live if the room is already full. |

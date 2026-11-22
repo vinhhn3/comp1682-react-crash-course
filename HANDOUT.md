@@ -15,6 +15,57 @@ npm run dev
 | `/?chaos=fail` | server returns 500 |
 | `/?chaos=offline` | network is down |
 
+**Three interactive explainers** (`concepts/`, open in any browser):
+
+| Page | Use it when |
+|---|---|
+| `concepts/hooks.html` | state feels like a variable, or `useEffect` runs at the wrong time |
+| `concepts/api.html` | the wrong search results appear, or you do not know what to show on a 500 |
+| `concepts/context.html` | you cannot explain why context beats props, or what re-renders |
+
+---
+
+## 0. The three mental models, in one screen each
+
+**Hooks — one render, one snapshot**
+
+```
+render 1:  count = 0   ← this is a constant for the whole render
+   click:  setCount(0 + 1)
+render 2:  count = 1   ← a new constant, in a new call
+```
+
+Two `setCount(count + 1)` in one handler both read `0`. The state is not a
+variable that changed; it is a value that was captured. That is why the
+functional form `setCount(c => c + 1)` exists.
+
+**API — one request, six states**
+
+```
+idle → loading → success
+              ↘ empty      (200, zero items)
+              ↘ error 4xx   (your request)
+              ↘ error 5xx   (their problem)
+              ↘ offline     (no network)
+              ↘ aborted     (the user typed again — show nothing)
+```
+
+Every one of those is a screen you have to draw. `AbortError` is the one you
+swallow, not report.
+
+**Context — skipping the middle**
+
+```
+props:    App ──cart──► AppLayout ──cart──► Header ──cart──► Badge
+                        (unused)          (unused)
+
+context:  App ──publish──► · · · · · · · · · · · · · · · ──► Badge
+                        AppLayout/Header unchanged
+```
+
+Only consumers re-render. Everything in between does not. That is the benefit
+and, because there is no selector, also the reason not to put everything in one.
+
 ---
 
 ## 1. The layer map
