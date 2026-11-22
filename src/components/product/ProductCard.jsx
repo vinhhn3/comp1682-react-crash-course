@@ -1,10 +1,10 @@
 import { Button } from '../common/Button';
 
 /**
- * Step 01: props in, JSX out. The Add button exists but has no handler yet.
- * Step 02 adds `onAdd` — and the component still knows nothing about carts.
+ * Step 02: one new prop, `onAdd`. The card still knows nothing about carts —
+ * it just reports that a button was pressed.
  */
-export function ProductCard({ product }) {
+export function ProductCard({ product, onAdd }) {
   return (
     <article className="card">
       <div className="card__art" aria-hidden="true">
@@ -19,7 +19,9 @@ export function ProductCard({ product }) {
         </div>
         <div className="card__foot">
           <span className="price">${(product.price_cents / 100).toFixed(2)}</span>
-          <Button variant="ghost">Add</Button>
+          <Button variant="ghost" onClick={() => onAdd(product)}>
+            Add
+          </Button>
         </div>
       </div>
     </article>
